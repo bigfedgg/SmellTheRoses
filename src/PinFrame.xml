@@ -1,0 +1,7 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/">
+    <Button name="STRMapPinTemplate"
+            inherits="POIButtonTemplate"
+            mixin="STRMapPinController"
+            virtual="true">
+    </Button>
+</Ui>

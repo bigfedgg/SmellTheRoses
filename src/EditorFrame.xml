@@ -1,0 +1,40 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/">
+    <DropdownButton name="STRNoteEditorDropdownTemplate"
+                    inherits="WowStyle1DropdownTemplate"
+                    mixin="STRNoteEditorContainerController"
+                    hidden="true"
+                    alpha="0"
+                    enableMouse="false"
+                    virtual="true">
+        <Size x="1" y="1"/>
+        <KeyValues>
+            <KeyValue key="menuWidth" type="number" value="220"/>
+        </KeyValues>
+        <Scripts>
+            <OnLoad method="OnLoad"/>
+            <OnHide method="OnHide"/>
+        </Scripts>
+    </DropdownButton>
+
+    <Frame name="STRNoteEditorFrameTemplate"
+           mixin="STRNoteEditorFrameController"
+           virtual="true">
+        <Size x="196" y="1"/>
+        <KeyValues>
+            <KeyValue key="lines" type="number" value="6"/>
+        </KeyValues>
+        <Frames>
+            <ScrollFrame parentKey="ScrollFrame"
+                         inherits="InputScrollFrameTemplate"
+                         setAllPoints="true">
+                <KeyValues>
+                    <KeyValue key="maxLetters" type="number" value="2000"/>
+                    <KeyValue key="hideCharCount" type="boolean" value="true"/>
+                </KeyValues>
+            </ScrollFrame>
+        </Frames>
+        <Scripts>
+            <OnHide method="OnHide"/>
+        </Scripts>
+    </Frame>
+</Ui>
