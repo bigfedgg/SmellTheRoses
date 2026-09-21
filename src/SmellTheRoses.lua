@@ -35,7 +35,6 @@ STRDataLoader:SetScript("OnEvent", function(self, _, loadedAddon)
         return
     end
 
-    print(SmellTheRosesDB)
     SmellTheRosesDB = SmellTheRosesDB or {}
     SmellTheRosesDB.QuestAnnotations = SmellTheRosesDB.QuestAnnotations or {}
     SmellTheRosesDB.MapAnnotations = SmellTheRosesDB.MapAnnotations or {}
