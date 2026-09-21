@@ -44,3 +44,6 @@ STRDataLoader:SetScript("OnEvent", function(self, _, loadedAddon)
 
     self:UnregisterEvent("ADDON_LOADED")
 end)
+
+-- Setup free map navigation while a quest is open.
+STR.GetQuestController():SetupMapNavigation()

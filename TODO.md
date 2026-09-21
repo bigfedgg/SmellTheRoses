@@ -1,7 +1,6 @@
 # TODO
 
 - [ ] Clicking outside the editor should prevent the click from cascading
-- [ ] Keep focused quest open when navigating the world map
 - [ ] Zoom out to show all annotations when a quest is opened in the journal
 - [ ] Delete markers for completed quests
 - [ ] Add demonstration video to README.md
