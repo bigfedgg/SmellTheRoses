@@ -16,9 +16,20 @@ end
 
 function STR.RemoveQuestAnnotation(annotation)
     -- NOTE: The number of annotations per map is expected to be small.
-    for candidateID, candidate in ipairs(STR.Data.QuestAnnotations[annotation.questID][annotation.mapID]) do
+    local questAnnotations = STR.Data.QuestAnnotations[annotation.questID]
+    local mapAnnotations = questAnnotations[annotation.mapID]
+
+    for index, candidate in ipairs(mapAnnotations) do
         if candidate == annotation then
-            table.remove(STR.Data.QuestAnnotations[annotation.questID][annotation.mapID], candidateID)
+            table.remove(mapAnnotations, index)
+
+            if #mapAnnotations == 0 then
+                questAnnotations[annotation.mapID] = nil
+            end
+
+            if next(questAnnotations) == nil then
+                STR.Data.QuestAnnotations[annotation.questID] = nil
+            end
             return
         end
     end
@@ -38,9 +49,15 @@ end
 
 function STR.RemoveMapAnnotation(annotation)
     -- NOTE: The number of annotations per map is expected to be small.
-    for candidateID, candidate in ipairs(STR.Data.MapAnnotations[annotation.mapID]) do
+    local mapAnnotations = STR.Data.MapAnnotations[annotation.mapID]
+
+    for candidateID, candidate in ipairs(mapAnnotations) do
         if candidate == annotation then
-            table.remove(STR.Data.MapAnnotations[annotation.mapID], candidateID)
+            table.remove(mapAnnotations, candidateID)
+
+            if #mapAnnotations == 0 then
+                STR.Data.MapAnnotations[annotation.mapID] = nil
+            end
             return
         end
     end
