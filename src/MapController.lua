@@ -8,6 +8,32 @@ function STR.GetMapController()
     return STRMapController
 end
 
+function STR.SetupMap()
+    -- Hook the map controller to the WorldMapFrame.
+    WorldMapFrame:AddDataProvider(STRMapController)
+    WorldMapFrame:AddCanvasClickHandler(function(canvas, button, x, y)
+        return STRMapController:OnClick(canvas, button, x, y)
+    end)
+
+    -- Setup map overview toggle.
+    Menu.ModifyMenu("MENU_WORLD_MAP_TRACKING", function(_, rootDescription)
+        local checkbox = rootDescription:CreateCheckbox(
+                "Annotation Overview",
+                function()
+                    return STR.Data.Options.showOverview
+                end,
+                function()
+                    STR.Data.Options.showOverview = not STR.Data.Options.showOverview
+                    STRMapController:RefreshAllData()
+                end)
+        checkbox:SetTooltip(
+                function(tooltip)
+                    GameTooltip_SetTitle(tooltip, "Smell the Roses")
+                    GameTooltip_AddNormalLine(tooltip, "Show annotations in parent maps.", true)
+                end)
+    end)
+end
+
 function STRMapController:OnAdded(map)
     MapCanvasDataProviderMixin.OnAdded(self, map)
 
@@ -27,7 +53,7 @@ function STRMapController:OnRemoved(map)
 end
 
 function STRMapController:OnClick(canvas, button, x, y)
-    if not STR.Loaded or button ~= "LeftButton" or not IsAltKeyDown() then
+    if button ~= "LeftButton" or not IsAltKeyDown() then
         return false
     end
 
@@ -87,10 +113,6 @@ function STRMapController:GetSmallestCommonMapForQuest(questID)
 end
 
 function STRMapController:RefreshAllData()
-    if not STR.Loaded then
-        return
-    end
-
     self:RemoveAllData()
 
     local map = self:GetMap()

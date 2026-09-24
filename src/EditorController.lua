@@ -1,3 +1,25 @@
+local _, STR = ...
+local STRNoteEditorContainer
+
+function STR.SetupNoteEditor()
+    -- Add the note editor container to the WorldMapFrame.
+    -- NOTE: The editor is constructed as a dropdown menu, inspired by the native map menus.
+    -- I like how those menus look and I didn't want to reinvent them, so here we are...
+    STRNoteEditorContainer = WorldMapFrame:AddOverlayFrame("STRNoteEditorDropdownTemplate", "DROPDOWNBUTTON")
+end
+
+function STR.OpenEditorFrameForPin(pin)
+    GameTooltip:Hide()
+    STRNoteEditorContainer:CloseEditor()
+    STRNoteEditorContainer:OpenEditor(pin)
+end
+
+function STR.CloseEditorFrameForPin(pin)
+    if STRNoteEditorContainer.pin == pin then
+        STRNoteEditorContainer:CloseEditor()
+    end
+end
+
 -- Controller for STRNoteEditorDropdownTemplate.
 STRNoteEditorContainerController = {}
 

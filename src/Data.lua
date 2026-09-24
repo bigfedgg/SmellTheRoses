@@ -1,5 +1,17 @@
 local _, STR = ...
 
+function STR.LoadData()
+    SmellTheRosesDB = SmellTheRosesDB or {}
+    SmellTheRosesDB.QuestAnnotations = SmellTheRosesDB.QuestAnnotations or {}
+    SmellTheRosesDB.MapAnnotations = SmellTheRosesDB.MapAnnotations or {}
+    SmellTheRosesDB.Options = SmellTheRosesDB.Options or {
+        deleteOnTurnIn = true,
+        showOverview = true
+    }
+
+    STR.Data = SmellTheRosesDB
+end
+
 function STR.AddQuestAnnotation(questID, mapID, x, y)
     STR.Data.QuestAnnotations[questID] = STR.Data.QuestAnnotations[questID] or {}
     STR.Data.QuestAnnotations[questID][mapID] = STR.Data.QuestAnnotations[questID][mapID] or {}
@@ -29,11 +41,15 @@ function STR.RemoveQuestAnnotation(annotation)
             end
 
             if next(questAnnotations) == nil then
-                STR.Data.QuestAnnotations[annotation.questID] = nil
+                STR.RemoveAllQuestAnnotations(annotation.questID)
             end
             return
         end
     end
+end
+
+function STR.RemoveAllQuestAnnotations(questID)
+    STR.Data.QuestAnnotations[questID] = nil
 end
 
 function STR.AddMapAnnotation(mapID, x, y)
@@ -60,6 +76,14 @@ function STR.RemoveMapAnnotation(annotation)
                 STR.Data.MapAnnotations[annotation.mapID] = nil
             end
             return
+        end
+    end
+end
+
+function STR.CleanupAllTurnedInQuestAnnotations()
+    for questID in pairs(STR.Data.QuestAnnotations) do
+        if C_QuestLog.IsQuestFlaggedCompleted(questID) and not C_QuestLog.IsOnQuest(questID) then
+            STR.RemoveAllQuestAnnotations(questID)
         end
     end
 end

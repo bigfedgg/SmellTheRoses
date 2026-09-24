@@ -1,12 +1,27 @@
 local _, STR = ...
 
-local STRQuestController = {}
+function STR.SetupQuestAnnotationsDisplay()
+    local function showQuestAnnotations(questID)
+        if STR.Data.QuestAnnotations[questID] then
+            STR.GetMapController():ShowQuestAnnotations(questID)
+        end
+    end
 
-function STR.GetQuestController()
-    return STRQuestController
+    hooksecurefunc("QuestMapLogTitleButton_OnClick", function(button, mouseButton)
+        if mouseButton ~= "LeftButton" or IsShiftKeyDown() then
+            return
+        end
+        if QuestMapFrame.DetailsFrame.questID ~= button.questID then
+            return
+        end
+        showQuestAnnotations(button.questID)
+    end)
+    hooksecurefunc("QuestMapFrame_OpenToQuestDetails", function(questID)
+        showQuestAnnotations(questID)
+    end)
 end
 
-function STRQuestController:SetupMapNavigation()
+function STR.SetupMapNavigationWithOpenQuest()
     -- NOTE: Map navigation calls WorldMapFrame.SetMapID, which by default closes
     -- any open quest details if it targets a different map (details.questMapID).
     -- Furthermore QuestMapFrame_ShowQuestDetails calls WorldMapFrame.SetMapID to
@@ -64,7 +79,18 @@ function STRQuestController:SetupMapNavigation()
         end
     end
 
-    STRQuestController.OpenQuestFromPin = function(questID)
+    STR.OpenQuestFromPin = function(questID)
         lockMapAndCall(QuestMapFrame_OpenToQuestDetails, questID)
     end
+end
+
+function STR.SetupDeleteAnnotationsOnQuestTurnIn()
+    local frame = CreateFrame("Frame")
+    frame:RegisterEvent("QUEST_TURNED_IN")
+    frame:SetScript("OnEvent", function(_, _, questID)
+        if STR.Data.Options.deleteOnTurnIn then
+            STR.RemoveAllQuestAnnotations(questID)
+            STR.GetMapController():RefreshAllData()
+        end
+    end)
 end

@@ -5,9 +5,14 @@ local annotationIcons = {
     map = "Quest-In-Progress-Icon-yellow"
 }
 
-local annotationTooltip = CreateFrame("GameTooltip", "STRAnnotationTooltip", UIParent, "GameTooltipTemplate")
-local separatorPool = CreateTexturePool(annotationTooltip, "ARTWORK")
+local annotationTooltip
+local separatorPool
 local tooltipTextWidth = 280
+
+function STR.SetupPins()
+    annotationTooltip = CreateFrame("GameTooltip", "STRAnnotationTooltip", UIParent, "GameTooltipTemplate")
+    separatorPool = CreateTexturePool(annotationTooltip, "ARTWORK")
+end
 
 local function GetAnnotationTitle(annotation)
     if annotation.questID then
@@ -82,7 +87,7 @@ function STRMapPinController:OnClick(button)
     if button == "LeftButton" then
         local map = self:GetMap()
         if annotation.questID and C_QuestLog.IsOnQuest(annotation.questID) then
-            STR.GetQuestController().OpenQuestFromPin(annotation.questID)
+            STR.OpenQuestFromPin(annotation.questID)
         end
         if map:GetMapID() ~= annotation.mapID then
             map:SetMapID(annotation.mapID)
