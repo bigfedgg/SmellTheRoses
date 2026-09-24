@@ -47,3 +47,26 @@ end)
 
 -- Setup free map navigation while a quest is open.
 STR.GetQuestController():SetupMapNavigation()
+
+local function showQuestAnnotations(questID)
+    if not STR.Loaded then
+        return
+    end
+    if STR.Data.QuestAnnotations[questID] then
+        STR.GetMapController():ShowQuestAnnotations(questID)
+    end
+end
+
+-- Setup multi-map quest annotation display.
+hooksecurefunc("QuestMapLogTitleButton_OnClick", function(button, mouseButton)
+    if mouseButton ~= "LeftButton" or IsShiftKeyDown() then
+        return
+    end
+    if QuestMapFrame.DetailsFrame.questID ~= button.questID then
+        return
+    end
+    showQuestAnnotations(button.questID)
+end)
+hooksecurefunc("QuestMapFrame_OpenToQuestDetails", function(questID)
+    showQuestAnnotations(questID)
+end)

@@ -12,10 +12,10 @@ function STRMapPinController:OnLoad()
     self:SetScalingLimits(1, 1, 1)
 end
 
-function STRMapPinController:OnAcquired(annotation)
+function STRMapPinController:OnAcquired(annotation, x, y)
     self.annotation = annotation
 
-    self:SetPosition(annotation.x, annotation.y)
+    self:SetPosition(x, y)
     self.Display:SetAtlas(nil, nil, annotationIcons[annotation.icon])
     self.Display:SetIconShown(true)
 end
@@ -35,7 +35,6 @@ end
 function STRMapPinController:OnClick(button)
     -- Alt+Click to remove a pin.
     if button == "LeftButton" and IsAltKeyDown() then
-
         if self.annotation.questID then
             STR.RemoveQuestAnnotation(self.annotation)
         else
@@ -46,9 +45,17 @@ function STRMapPinController:OnClick(button)
         return
     end
 
-    -- Click a quest pin to open its quest details.
-    if button == "LeftButton" and self.annotation.questID then
-        QuestMapFrame_OpenToQuestDetails(self.annotation.questID)
+    -- Click a pin to go to its map.
+    -- If it's a quest pin also open its quest details.
+    if button == "LeftButton" then
+        local annotation, map = self.annotation, self:GetMap()
+        if annotation.questID then
+            STR.GetQuestController().OpenQuestFromPin(annotation.questID)
+        end
+        if map:GetMapID() ~= annotation.mapID then
+            map:SetMapID(annotation.mapID)
+            map:ResetZoom()
+        end
         return
     end
 
@@ -57,9 +64,6 @@ function STRMapPinController:OnClick(button)
         STR.OpenEditorFrameForPin(self)
         return
     end
-
-    -- TODO: Verify that I still have the click sound without this
-    -- POIButtonMixin.OnClick(self, button)
 end
 
 function STRMapPinController:OnMouseEnter()
