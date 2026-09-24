@@ -6,6 +6,7 @@ function STR.AddQuestAnnotation(questID, mapID, x, y)
 
     table.insert(STR.Data.QuestAnnotations[questID][mapID], {
         questID = questID,
+        questTitle = C_QuestLog.GetTitleForQuestID(questID),
         mapID = mapID,
         x = x,
         y = y,

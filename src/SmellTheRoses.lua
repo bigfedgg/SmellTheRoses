@@ -38,6 +38,9 @@ STRDataLoader:SetScript("OnEvent", function(self, _, loadedAddon)
     SmellTheRosesDB = SmellTheRosesDB or {}
     SmellTheRosesDB.QuestAnnotations = SmellTheRosesDB.QuestAnnotations or {}
     SmellTheRosesDB.MapAnnotations = SmellTheRosesDB.MapAnnotations or {}
+    SmellTheRosesDB.Options = SmellTheRosesDB.Options or {
+        showOverview = true
+    }
 
     STR.Data = SmellTheRosesDB
     STR.Loaded = true
@@ -69,4 +72,22 @@ hooksecurefunc("QuestMapLogTitleButton_OnClick", function(button, mouseButton)
 end)
 hooksecurefunc("QuestMapFrame_OpenToQuestDetails", function(questID)
     showQuestAnnotations(questID)
+end)
+
+-- Setup map overview toggle.
+Menu.ModifyMenu("MENU_WORLD_MAP_TRACKING", function(_, rootDescription)
+    local checkbox = rootDescription:CreateCheckbox(
+            "Annotation Overview",
+            function()
+                return STR.Data.Options.showOverview
+            end,
+            function()
+                STR.Data.Options.showOverview = not STR.Data.Options.showOverview
+                STR.GetMapController():RefreshAllData()
+            end)
+    checkbox:SetTooltip(
+            function(tooltip)
+                GameTooltip_SetTitle(tooltip, "Smell the Roses")
+                GameTooltip_AddNormalLine(tooltip, "Show annotations in parent maps.", true)
+            end)
 end)

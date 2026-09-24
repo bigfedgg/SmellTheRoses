@@ -19,6 +19,16 @@ function STRQuestController:SetupMapNavigation()
     local originalSetMapID = WorldMapFrame.SetMapID
     local originalShowQuestDetails = QuestMapFrame_ShowQuestDetails
 
+    local function lockMapAndCall(originalFunction, ...)
+        local wasMapLocked = lockedMap
+        lockedMap = true
+        local ok, message = pcall(originalFunction, ...)
+        lockedMap = wasMapLocked
+        if not ok then
+            error(message, 0)
+        end
+    end
+
     -- Prevent navigation if the map is locked.
     WorldMapFrame.SetMapID = function(map, mapID)
         if lockedMap then
@@ -43,13 +53,7 @@ function STRQuestController:SetupMapNavigation()
         local preserveMapNavigation = lockedMap or refreshingOpenedQuest
 
         if preserveMapNavigation then
-            local wasMapLocked = lockedMap
-            lockedMap = true
-            local ok, message = pcall(originalShowQuestDetails, questID)
-            lockedMap = wasMapLocked
-            if not ok then
-                error(message, 0)
-            end
+            lockMapAndCall(originalShowQuestDetails, questID)
         else
             originalShowQuestDetails(questID)
         end
@@ -61,12 +65,6 @@ function STRQuestController:SetupMapNavigation()
     end
 
     STRQuestController.OpenQuestFromPin = function(questID)
-        local wasMapLocked = lockedMap
-        lockedMap = true
-        local ok, message = pcall(QuestMapFrame_OpenToQuestDetails, questID)
-        lockedMap = wasMapLocked
-        if not ok then
-            error(message, 0)
-        end
+        lockMapAndCall(QuestMapFrame_OpenToQuestDetails, questID)
     end
 end

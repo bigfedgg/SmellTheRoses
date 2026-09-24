@@ -11,6 +11,7 @@ EditorController.lua
 EditorFrame.xml
 PinController.lua
 PinFrame.xml
+MapHelpers.lua
 MapController.lua
 QuestController.lua
 SmellTheRoses.lua

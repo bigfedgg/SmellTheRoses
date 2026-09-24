@@ -11,7 +11,7 @@ function STRNoteEditorContainerController:OnLoad()
         local editorFrame = rootDescription:CreateTemplate("STRNoteEditorFrameTemplate")
         editorFrame:AddInitializer(function(editor, _, menu)
             container.editor = editor
-            editor:Initialize(container.pin.annotation, menu)
+            editor:Initialize(container.pin.annotations[1], menu)
             return editor:GetSize()
         end)
     end)
