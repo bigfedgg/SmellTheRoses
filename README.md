@@ -37,6 +37,9 @@ With this option enabled, annotations will appear on their parent maps. So an an
 - Where: Map panel → Map Filter dropdown → Annotation Overview
 - Default: Enabled
 
+> [!NOTE]
+> Zephras Isle annotations are projected into the World Map to the West of Feralas. This is roughly the location where the Skyborne originally struck a bargain with the elementals to help them escape to Skywall. It's pretty arbitrary, but I thought it was the most fitting.
+
 ## F.A.Q
 
 ### Does this addon automate questing in any way?

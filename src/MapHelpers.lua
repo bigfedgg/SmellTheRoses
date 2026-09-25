@@ -20,7 +20,7 @@ local mapsWithBoundsChecks = {
 
 local projectionOverrides = {
     [2521] = {
-        [947] = {0.5, 0.5}, -- Zephras Isle -> Azeroth center
+        [947] = {0.08, 0.66}, -- Zephras Isle -> West of Feralas
     },
 }
 
