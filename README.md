@@ -1,46 +1,56 @@
 # Smell the Roses
 
-Smell the Roses is a minimal addon for World of Warcraft: Forever that helps you in your questing, without automation or hand-holding.
-If you're the kind of player who likes to immerse yourself in the world, read quest text, explore and figure out where you need to go, then this addon is for you!
+StR is a minimal addon for World of Warcraft: Forever that helps you in your questing, without automation or hand-holding. If you're the kind of player who likes to immerse yourself in the world, read quest text, figure out directions, and explore, then this addon is for you!
 
 ## Installation
 
-1. Download this repository
-2. Extract it if you downloaded
-3. Copy the contents or `\src` to `<World of Warcaft Folder>\_classic_beta_\Interface\AddOns\SmellTheRoses`
+1. Download or clone this repository
+2. Copy the contents of `\src` to `<World of Warcaft Folder>\_classic_beta_\Interface\AddOns\SmellTheRoses`
 
-## Basic features
+## Usage
 
-Smell the Roses adds a few features to the native quest journal:
+You just accepted a quest. It tells you to kill 10 Plainstriders to the South East. With StR, you **open the quest in the quest journal**, **`Alt-Click` somewhere to the South East to add an annotation**, then `Right-Click` the annotation to add a note: "10 Plainstriders". Now while questing you can **hover over the annotation to see its content**, **click the annotation to open the quest**, or **click the quest to go to its annotations**.
 
-- Add your own quest markers: This is pretty useful when you read a quest that tells you to go somewhere. Just select the quest and Alt-click where you think you should go on the map. 
-- Add notes to your markers: Right-click any marker to add a note. For example if the quest is asking you to look for a well, you can put that in the note.
-- Hover over a marker to see the quest title and your note, and click it to open the associated quests.
-- You can also add markers to a map with no quest selected, mostly so you don't have to add a generic annotation addon on top.
+While killing the Plainstriders, you discover a cave with an Elite. You're not ready for it just yet, so you open your map and **`Alt-Click` your position to add a map annotation**. These are not linked to a quest and have their own pin icon.
 
-## Advanced features
+Once done with the Plainstriders you go back to the quest-giver and turn-in the quest. If auto-deletion is enabled in the addon configuration (it's enabled by default), your **quest annotations will be deleted after you turn in the quest**. Your map annotation will be unaffected.
 
-Smell the Roses also allows some more advanced uses that change the behavior of the quest journal:
+> [!TIP]
+> StR allows you to **freely navigate and annotate the world map while a quest is open**. This is useful when a quest has objectives in multiple maps, or if you want to mark the quest giver's location in addition to the objective. On top of that, **clicking a quest with multi-map annotations will select the proper map level to show all the annotations at the same time**.
 
-- Annotate quests across multiple maps: On top of the objective, sometimes you might want to mark the quest giver's location if it's not obvious. Or a quest might just have objectives spread across multiple maps. Smell the Roses lets you navigate the world map without losing focus of the selected quest. You can then add quest markers anywhere you want!
-- Display all markers for a quest: This goes hand-in-hand with the previous feature. When you open a quest that has markers across multiple maps, the world map will zoom out to show you all your markers.
-- Automatically delete markers for completed quests.
+## Options
+
+### Delete annotations on quest turn-in
+
+With this option enabled, quest annotations will be automatically deleted after you turn-in their quest.
+
+- Where: AddOns configuration panel → Smell the Roses
+- Default: Enabled
+
+> [!TIP]
+> You can also use the "Cleanup" button to delete quest annotations for any quests that were turned-in while the addon was disabled.
+
+### Show annotation overview
+
+With this option enabled, annotations will appear on their parent maps. So an annotation in Mulgore will also appear at the appropriate location if you've looking at the Kalimdor map or the World Map. To keep the parent maps readable, clustering is used if some annotations are too close to each other.
+
+- Where: Map panel → Map Filter dropdown → Annotation Overview
+- Default: Enabled
 
 ## F.A.Q
 
 ### Does this addon automate questing in any way?
 
-No. StR won't create quest markers for you. It will not show you where to go or what to do.
-It only allows you to create markers with some neat quest journal integration.
+No. StR doesn't create quest pins for you, nor does it show you where to go or what to do. It only allows you to create your own annotations with some helpful quest journal and map integrations.
 
 ### Why not just use something like HandyNotes?
 
-You could! And that's what I was personally doing before writing this addon. 
-What StR gives you is a way stronger integration with the quest journal, as well as a native look and feel.
-For example, you can attach markers to specific quests and have them disappear when the quest is completed.
-You can also navigate from markers to quests and vice versa, as-if you were using the native quest helper.
-In the future there are also more features planned that just don't make sense for generic annotation addons.
+You could! And that's what I was personally doing before writing this addon. What StR gives you is a way stronger integration with the quest journal and the map, as well as a native look and feel.
 
-### Can I share markers between characters?
+### Can you add feature <X>?
 
-No, you can't currently. Each character has their own markers. I can think of something if there is demand.
+I would love to add more features if they fall into the scope of the addon! So please don't hesitate to open an issue and describe what you want and why you think it would fit the addon.
+
+### Is Retail supported? Is Classic supported?
+
+It would not be difficult to support Retail, but I doubt there would be much interest. Classic is less straightforward to support because the quest journal and map UIs are different, but I will look into it if there is demand, so don't hesitate to open an issue if this is important to you.
