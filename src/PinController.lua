@@ -1,8 +1,8 @@
 local _, STR = ...
 
 local annotationIcons = {
-    quest = "worldquest-icon",
-    map = "Quest-In-Progress-Icon-yellow"
+    map = "worldquest-icon",
+    quest = "Quest-In-Progress-Icon-yellow"
 }
 
 local annotationTooltip
