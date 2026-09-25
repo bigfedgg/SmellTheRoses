@@ -1,7 +1,7 @@
 local _, STR = ...
 
 function STR.SetupSettings()
-    local categoryName = "|TInterface\\AddOns\\SmellTheRoses\\Art\\SmellTheRoses.blp:16:16|t Smell the Roses"
+    local categoryName = "Smell the Roses"
     local category, layout = Settings.RegisterVerticalLayoutCategory(categoryName)
 
     -- Delete quest annotations on turn-in.
