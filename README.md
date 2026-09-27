@@ -2,6 +2,14 @@
 
 StR is a minimal addon for World of Warcraft: Forever that helps you in your questing, without automation or hand-holding. If you're the kind of player who likes to immerse yourself in the world, read quest text, figure out directions, and explore, then this addon is for you!
 
+## Installation
+
+- Install through [CurseForge](https://www.curseforge.com/wow/addons/smell-the-roses)
+- Install manually:
+  - Download the [latest release](https://github.com/bigfedgg/SmellTheRoses/releases/latest)
+  - Unpack the archive
+  - Copy the `SmellTheRoses` folder to `<WoW Forever Installation>\_classic_beta_\Interface\AddOns`
+
 ## Usage
 
 You just accepted a quest. It tells you to kill 10 Plainstriders to the South East. With StR, you **open the quest in the quest journal**, **`Alt-Click` somewhere to the South East to add an annotation**, then `Right-Click` the annotation to add a note: "10 Plainstriders". Now while questing you can **hover over the annotation to see its content**, **click the annotation to open the quest**, or **click the quest to go to its annotations**.
