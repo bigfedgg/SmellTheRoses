@@ -1,4 +1,4 @@
-# Smell the Roses
+# <sub>![LOGO](md-logo.png)</sub> Smell the Roses
 
 StR is a minimal addon for World of Warcraft: Forever that helps you in your questing, without automation or hand-holding. If you're the kind of player who likes to immerse yourself in the world, read quest text, figure out directions, and explore, then this addon is for you!
 
