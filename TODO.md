@@ -1,5 +1,6 @@
 # TODO
 
+- Right-click and move annotation, or cluster
 - Improve UX for same location quest annotations
 - Verify WoWUp installation
 - Support more languages
