@@ -62,7 +62,7 @@ function STRNoteEditorContainerController:OnMenuOpened(menu)
     self.editor:FocusAtEnd()
 end
 
-function STRNoteEditorContainerController:OnMenuClosed(menu, closeReason)
+function STRNoteEditorContainerController:OnMenuClosed(menu)
     DropdownButtonMixin.OnMenuClosed(self, menu)
     self:Hide()
 end
