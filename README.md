@@ -53,7 +53,7 @@ No. StR doesn't create quest pins for you, nor does it show you where to go or w
 
 You could! And that's what I was personally doing before writing this addon. What StR gives you is a way stronger integration with the quest journal and the map, as well as a native look and feel.
 
-### Can you add feature <X>?
+### Can you add a feature?
 
 I would love to add more features if they fall into the scope of the addon! So please don't hesitate to open an issue and describe what you want and why you think it would fit the addon.
 
