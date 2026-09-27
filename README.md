@@ -60,3 +60,7 @@ I would love to add more features if they fall into the scope of the addon! So p
 ### Is Retail supported? Is Classic supported?
 
 It would not be difficult to support Retail, but I doubt there would be much interest. Classic is less straightforward to support because the quest journal and map UIs are different, but I will look into it if there is demand, so don't hesitate to open an issue if this is important to you.
+
+### Was Generative AI used to make this addon?
+
+No. All art, code, and text (including this README file) were 100% human-made.
