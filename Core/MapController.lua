@@ -116,12 +116,11 @@ function STRMapController:RefreshAllData()
     self:RemoveAllData()
 
     local map = self:GetMap()
-    local projections = self:GetProjectedAnnotations()
-    local clusters = {}
-
-    if STR.Data.Options.showOverview and not self.focusedQuestID then
-        projections, clusters = self:ClusterAnnotations(projections, map:GetMapID())
-    end
+    local projections, clusters = self:ClusterAnnotations(
+            self:GetProjectedAnnotations(),
+            map:GetMapID(),
+            self.focusedQuestID
+    )
 
     for _, projection in ipairs(projections) do
         map:AcquirePin("STRMapPinTemplate", {projection.annotation}, projection.x, projection.y)
@@ -170,11 +169,16 @@ function STRMapController:GetProjectedAnnotations()
     return positions
 end
 
-function STRMapController:ClusterAnnotations(positions, targetMapID)
-    -- Real positions are not clustered.
+function STRMapController:ClusterAnnotations(positions, targetMapID, focusedQuestID)
+    -- The base map is the map directly referenced by an annotation.
+    -- We don't cluster map and focused quest annotations on their base maps.
+    -- This is so they can be easily deleted until I implement interactive clusters.
     local realPositions, projectedPositions, clusters = {}, {}, {}
     for _, position in ipairs(positions) do
-        if position.annotation.mapID == targetMapID then
+        local isBaseMap = position.annotation.mapID == targetMapID
+        local isMapAnnotation = not position.annotation.questID
+        local isFocusedQuest = position.annotation.questID == focusedQuestID
+        if isBaseMap and (isMapAnnotation or isFocusedQuest) then
             table.insert(realPositions, position)
         else
             table.insert(projectedPositions, position)
