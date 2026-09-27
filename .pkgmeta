@@ -1,0 +1,13 @@
+package-as: SmellTheRoses
+
+manual-changelog:
+  filename: CHANGELOG.md
+  markup-type: markdown
+
+ignore:
+    - .github
+    - .gitignore
+    - install.bat
+    - CHANGELOG.md
+    - README.md
+    - TODO.md

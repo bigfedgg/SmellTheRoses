@@ -1,0 +1,19 @@
+## Interface: 16001
+## Title: Smell The Roses
+## Notes: Map notes for questing and exploration.
+## Author: BIGFED
+## Version: @project-version@
+## IconTexture: Interface\AddOns\SmellTheRoses\Art\SmellTheRoses.blp
+## SavedVariablesPerCharacter: SmellTheRosesDB
+## X-Curse-Project-ID: 1714305
+
+Core/Data.lua
+Core/EditorController.lua
+Core/EditorFrame.xml
+Core/PinController.lua
+Core/PinFrame.xml
+Core/MapHelpers.lua
+Core/MapController.lua
+Core/QuestController.lua
+Core/Settings.lua
+Core/SmellTheRoses.lua
