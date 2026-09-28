@@ -1,6 +1,6 @@
 local _, STR = ...
 
-function STR.SetupQuestAnnotationsDisplay()
+function STR.SetupQuestAnnotationDisplay()
     local function openMapForQuest(questID)
         if STR.Data.QuestAnnotations[questID] then
             STR.GetMapController():OpenMapForQuest(questID)
@@ -19,6 +19,75 @@ function STR.SetupQuestAnnotationsDisplay()
     hooksecurefunc("QuestMapFrame_OpenToQuestDetails", function(questID)
         openMapForQuest(questID)
     end)
+end
+
+function STR.SetupQuestAnnotationIndicators()
+    hooksecurefunc("QuestLogQuests_Update", STR.UpdateQuestIndicatorsInJournal)
+    hooksecurefunc(QuestObjectiveTracker, "Update", STR.UpdateQuestIndicatorsInTracker)
+    hooksecurefunc(QuestObjectiveTracker, "OnFreeBlock", function(_, block)
+        if block.STRAnnotationIndicator then
+            block.STRAnnotationIndicator:Hide()
+        end
+    end)
+    hooksecurefunc(STR, "AddQuestAnnotation", STR.UpdateQuestIndicators)
+    hooksecurefunc(STR, "RemoveAllQuestAnnotations", STR.UpdateQuestIndicators)
+
+    STR.UpdateQuestIndicators()
+end
+
+function STR.UpdateQuestIndicators()
+    STR.UpdateQuestIndicatorsInJournal()
+    STR.UpdateQuestIndicatorsInTracker()
+end
+
+function STR.UpdateQuestIndicatorsInJournal()
+    for button in QuestScrollFrame.titleFramePool:EnumerateActive() do
+        local hasAnnotations = STR.Data.QuestAnnotations[button.questID] ~= nil
+        local blizzardPin = QuestScrollFrame.Contents:FindButtonByQuestID(button.questID)
+        local showIndicator = hasAnnotations and not blizzardPin
+
+        if showIndicator and not button.STRAnnotationIndicator then
+            button.STRAnnotationIndicator = STR.CreateQuestIndicator(button)
+            button.STRAnnotationIndicator:SetPoint("TOPLEFT", button, "TOPLEFT", 6, -4)
+        end
+        if button.STRAnnotationIndicator then
+            button.STRAnnotationIndicator:SetShown(showIndicator)
+        end
+    end
+end
+
+function STR.UpdateQuestIndicatorsInTracker()
+    QuestObjectiveTracker:EnumerateActiveBlocks(function(block)
+        if block.template ~= QuestObjectiveTracker.blockTemplate then
+            return
+        end
+
+        local hasAnnotations = STR.Data.QuestAnnotations[block.id] ~= nil
+        local showIndicator = hasAnnotations and not block.poiButton
+
+        if showIndicator and not block.STRAnnotationIndicator then
+            block.STRAnnotationIndicator = STR.CreateQuestIndicator(block)
+            block.STRAnnotationIndicator:SetPoint("TOPRIGHT", block.HeaderText, "TOPLEFT", -7, 5)
+        end
+        if block.STRAnnotationIndicator then
+            block.STRAnnotationIndicator:SetShown(showIndicator)
+        end
+    end)
+end
+
+function STR.CreateQuestIndicator(parent)
+    local indicator = CreateFrame("Frame", nil, parent)
+    indicator:SetSize(20, 20)
+
+    local background = indicator:CreateTexture(nil, "BACKGROUND")
+    background:SetAtlas("UI-QuestPoi-QuestNumber", true)
+    background:SetPoint("CENTER")
+
+    local icon = indicator:CreateTexture(nil, "ARTWORK")
+    icon:SetAtlas("Quest-In-Progress-Icon-yellow", true)
+    icon:SetPoint("CENTER")
+
+    return indicator
 end
 
 function STR.SetupMapNavigationWithOpenQuest()

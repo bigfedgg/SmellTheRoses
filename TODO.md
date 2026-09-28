@@ -1,6 +1,5 @@
 # TODO
 
-- Add a small annotation indicator in the journal
 - Add an option to disable the addon if Quest Objectives are enabled
 - Allow moving annotations and clusters in edit mode (Right-click)
 - Add an option to lock the minimap to the lowest zoom
