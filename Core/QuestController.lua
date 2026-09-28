@@ -41,10 +41,11 @@ function STR.UpdateQuestIndicators()
 end
 
 function STR.UpdateQuestIndicatorsInJournal()
+    local isAddonEnabled = STR.IsAddonEnabled()
     for button in QuestScrollFrame.titleFramePool:EnumerateActive() do
         local hasAnnotations = STR.Data.QuestAnnotations[button.questID] ~= nil
         local blizzardPin = QuestScrollFrame.Contents:FindButtonByQuestID(button.questID)
-        local showIndicator = hasAnnotations and not blizzardPin
+        local showIndicator = isAddonEnabled and hasAnnotations and not blizzardPin
 
         if showIndicator and not button.STRAnnotationIndicator then
             button.STRAnnotationIndicator = STR.CreateQuestIndicator(button)
@@ -57,13 +58,14 @@ function STR.UpdateQuestIndicatorsInJournal()
 end
 
 function STR.UpdateQuestIndicatorsInTracker()
+    local isAddonEnabled = STR.IsAddonEnabled()
     QuestObjectiveTracker:EnumerateActiveBlocks(function(block)
         if block.template ~= QuestObjectiveTracker.blockTemplate then
             return
         end
 
         local hasAnnotations = STR.Data.QuestAnnotations[block.id] ~= nil
-        local showIndicator = hasAnnotations and not block.poiButton
+        local showIndicator = isAddonEnabled and hasAnnotations and not block.poiButton
 
         if showIndicator and not block.STRAnnotationIndicator then
             block.STRAnnotationIndicator = STR.CreateQuestIndicator(block)

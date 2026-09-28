@@ -42,6 +42,10 @@ end
 function STRMapController:RefreshAllData()
     self:RemoveAllData()
 
+    if not STR.IsAddonEnabled() then
+        return
+    end
+
     local map = self:GetMap()
     local mapID = map:GetMapID()
 
@@ -117,6 +121,10 @@ function STRMapController:CloseCluster(cluster)
 end
 
 function STRMapController:OpenMapForQuest(questID)
+    if not STR.IsAddonEnabled() then
+        return
+    end
+
     local mapID = self:GetSmallestCommonMapForQuest(questID)
 
     local map = self:GetMap()
@@ -146,7 +154,7 @@ function STRMapController:GetSmallestCommonMapForQuest(questID)
 end
 
 function STRMapController:OnClick(canvas, button, x, y)
-    if button ~= "LeftButton" or not IsAltKeyDown() then
+    if not STR.IsAddonEnabled() or button ~= "LeftButton" or not IsAltKeyDown() then
         return false
     end
 

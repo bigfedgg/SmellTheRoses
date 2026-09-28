@@ -35,5 +35,32 @@ function STR.SetupSettings()
     )
     layout:AddInitializer(initializer)
 
+    -- Disable with Blizzard objectives.
+    local objectivesSetting = Settings.RegisterAddOnSetting(
+            category,
+            "STR_DISABLE_WITH_QUEST_OBJECTIVES",
+            "disableWithQuestObjectives",
+            STR.Data.Options,
+            Settings.VarType.Boolean,
+            "Disable with Blizzard objectives",
+            true
+    )
+    Settings.CreateCheckbox(
+            category,
+            objectivesSetting,
+            "Disable addon when Blizzard's Quest Objectives are enabled."
+    )
+    objectivesSetting:SetValueChangedCallback(STR.RefreshAnnotationVisibility)
+    CVarCallbackRegistry:RegisterCallback("questPOI", STR.RefreshAnnotationVisibility, STR)
+
     Settings.RegisterAddOnCategory(category)
+end
+
+function STR.RefreshAnnotationVisibility()
+    STR.GetMapController():RefreshAllData()
+    STR.UpdateQuestIndicators()
+end
+
+function STR.IsAddonEnabled()
+    return not (STR.Data.Options.disableWithQuestObjectives and GetCVarBool("questPOI"))
 end

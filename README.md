@@ -33,6 +33,13 @@ With this option enabled, quest annotations will be automatically deleted after 
 > [!TIP]
 > You can also use the "Cleanup" button to delete quest annotations for any quests that were turned-in while the addon was disabled.
 
+### Disable with Blizzard objectives
+
+With this option enabled, the addon is effectively disabled when you enable the Quest Objectives filter in the world map. All annotations, clusters, and quest indicators are hidden, and creating annotations is disabled.
+
+- Where: AddOns configuration panel → Smell the Roses
+- Default: Enabled
+
 ### Show annotation overview
 
 With this option enabled, annotations will appear on their parent maps. So an annotation in Mulgore will also appear at the appropriate location if you've looking at the Kalimdor map or the World Map. To keep the parent maps readable, clustering is used if some annotations are too close to each other.
