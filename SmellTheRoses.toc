@@ -10,8 +10,12 @@
 Core/Data.lua
 Core/EditorController.lua
 Core/EditorFrame.xml
-Core/PinController.lua
-Core/PinFrame.xml
+Core/Pins/AnnotationPin.lua
+Core/Pins/DirectClusterPin.lua
+Core/Pins/OverviewClusterPin.lua
+Core/Pins/PinTooltip.lua
+Core/Pins/ClusterPopup.lua
+Core/Pins/PinTemplates.xml
 Core/MapHelpers.lua
 Core/MapController.lua
 Core/QuestController.lua

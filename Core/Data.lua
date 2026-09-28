@@ -87,3 +87,46 @@ function STR.CleanupAllTurnedInQuestAnnotations()
         end
     end
 end
+
+function STR.SelectAnnotationsToDisplay(targetMapID, focusedQuestID)
+    local annotations = {}
+
+    -- If a quest is focused, return only quest annotations.
+    if focusedQuestID then
+        local questMaps = STR.Data.QuestAnnotations[focusedQuestID]
+        for _, mapAnnotations in pairs(questMaps or {}) do
+            for _, annotation in ipairs(mapAnnotations) do
+                table.insert(annotations, annotation)
+            end
+        end
+
+    -- If overview is disabled, return only the annotations directly on the target map.
+    elseif not STR.Data.Options.showOverview then
+        for _, questMaps in pairs(STR.Data.QuestAnnotations) do
+            for _, annotation in ipairs(questMaps[targetMapID] or {}) do
+                table.insert(annotations, annotation)
+            end
+        end
+        for _, annotation in ipairs(STR.Data.MapAnnotations[targetMapID] or {}) do
+            table.insert(annotations, annotation)
+        end
+
+    -- If overview is enabled, return all annotations (they will be filtered during projection).
+    -- TODO: If we pass the target map children we could already filter them here.
+    elseif STR.Data.Options.showOverview then
+        for _, questMaps in pairs(STR.Data.QuestAnnotations) do
+            for _, mapAnnotations in pairs(questMaps) do
+                for _, annotation in ipairs(mapAnnotations) do
+                    table.insert(annotations, annotation)
+                end
+            end
+        end
+        for _, mapAnnotations in pairs(STR.Data.MapAnnotations) do
+            for _, annotation in ipairs(mapAnnotations) do
+                table.insert(annotations, annotation)
+            end
+        end
+    end
+
+    return annotations
+end

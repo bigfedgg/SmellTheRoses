@@ -1,9 +1,9 @@
 local _, STR = ...
 
 function STR.SetupQuestAnnotationsDisplay()
-    local function showQuestAnnotations(questID)
+    local function openMapForQuest(questID)
         if STR.Data.QuestAnnotations[questID] then
-            STR.GetMapController():ShowQuestAnnotations(questID)
+            STR.GetMapController():OpenMapForQuest(questID)
         end
     end
 
@@ -14,10 +14,10 @@ function STR.SetupQuestAnnotationsDisplay()
         if QuestMapFrame.DetailsFrame.questID ~= button.questID then
             return
         end
-        showQuestAnnotations(button.questID)
+        openMapForQuest(button.questID)
     end)
     hooksecurefunc("QuestMapFrame_OpenToQuestDetails", function(questID)
-        showQuestAnnotations(questID)
+        openMapForQuest(questID)
     end)
 end
 

@@ -1,0 +1,33 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/">
+    <Button name="STRMapAnnotationPinTemplate"
+            inherits="POIButtonTemplate"
+            mixin="STRMapAnnotationPinMixin"
+            virtual="true">
+    </Button>
+
+    <Button name="STRClusterAnnotationPinTemplate"
+            inherits="POIButtonTemplate"
+            mixin="STRAnnotationButtonMixin"
+            virtual="true">
+        <Scripts>
+            <OnLoad inherit="append">
+                self:RegisterForClicks("LeftButtonUp", "RightButtonUp")
+            </OnLoad>
+            <OnClick method="OnClick"/>
+            <OnEnter method="OnMouseEnter"/>
+            <OnLeave method="OnMouseLeave"/>
+        </Scripts>
+    </Button>
+
+    <Button name="STRDirectClusterPinTemplate"
+            inherits="POIButtonTemplate"
+            mixin="STRDirectClusterPinMixin"
+            virtual="true">
+    </Button>
+
+    <Button name="STROverviewClusterPinTemplate"
+            inherits="POIButtonTemplate"
+            mixin="STROverviewClusterPinMixin"
+            virtual="true">
+    </Button>
+</Ui>

@@ -9,6 +9,11 @@ function STR.GetMapController()
 end
 
 function STR.SetupMap()
+    -- Create reusable components: pin tooltip, note editor, cluster popup
+    STRMapController.pinTooltip = STR.CreatePinTooltip()
+    STRMapController.noteEditor = STR.CreateNoteEditor()
+    STRMapController.clusterPopup = STR.CreateClusterPopup()
+
     -- Hook the map controller to the WorldMapFrame.
     WorldMapFrame:AddDataProvider(STRMapController)
     WorldMapFrame:AddCanvasClickHandler(function(canvas, button, x, y)
@@ -34,56 +39,84 @@ function STR.SetupMap()
     end)
 end
 
-function STRMapController:OnAdded(map)
-    MapCanvasDataProviderMixin.OnAdded(self, map)
+function STRMapController:RefreshAllData()
+    self:RemoveAllData()
 
-    self.focusedQuestID = QuestMapFrame.DetailsFrame.questID
+    local map = self:GetMap()
+    local mapID = map:GetMapID()
 
-    map:RegisterCallback("SetFocusedQuestID", self.OnFocusedQuestChanged, self)
-    map:RegisterCallback("ClearFocusedQuestID", self.OnFocusedQuestCleared, self)
+    local annotations = STR.SelectAnnotationsToDisplay(mapID, self.focusedQuestID)
+    local positions = STR.ProjectAnnotations(annotations, mapID)
+    local layout = STR.BuildPinLayout(positions, mapID, self.focusedQuestID)
+
+    for _, position in ipairs(layout.annotationPins) do
+        map:AcquirePin("STRMapAnnotationPinTemplate", position.annotation, position.x, position.y)
+    end
+    for _, cluster in ipairs(layout.directClusters) do
+        map:AcquirePin("STRDirectClusterPinTemplate", cluster.members, cluster.x, cluster.y)
+    end
+    for _, cluster in ipairs(layout.overviewClusters) do
+        map:AcquirePin("STROverviewClusterPinTemplate", cluster.members, cluster.x, cluster.y)
+    end
 end
 
-function STRMapController:OnRemoved(map)
-    self.focusedQuestID = nil
+function STRMapController:OpenAnnotation(annotation)
+    self.clusterPopup:Close()
 
-    map:UnregisterCallback("SetFocusedQuestID", self)
-    map:UnregisterCallback("ClearFocusedQuestID", self)
+    if annotation.questID and C_QuestLog.IsOnQuest(annotation.questID) then
+        STR.OpenQuestFromPin(annotation.questID)
+    end
 
-    MapCanvasDataProviderMixin.OnRemoved(self, map)
+    local map = self:GetMap()
+    if map:GetMapID() ~= annotation.mapID then
+        map:SetMapID(annotation.mapID)
+        map:ResetZoom()
+    end
 end
 
-function STRMapController:OnClick(canvas, button, x, y)
-    if button ~= "LeftButton" or not IsAltKeyDown() then
-        return false
-    end
-
-    local openedMapID = canvas:GetMapID()
-    if not STR.CanAnnotateMapPosition(openedMapID, x, y) then
-        return true
-    end
-
-    if self.focusedQuestID then
-        STR.AddQuestAnnotation(self.focusedQuestID, openedMapID, x, y)
+function STRMapController:DeleteAnnotation(annotation)
+    if annotation.questID then
+        STR.RemoveQuestAnnotation(annotation)
     else
-        STR.AddMapAnnotation(openedMapID, x, y)
+        STR.RemoveMapAnnotation(annotation)
     end
 
     self:RefreshAllData()
-
-    return true
 end
 
-function STRMapController:OnFocusedQuestChanged(questID)
-    self.focusedQuestID = questID
-    self:RefreshAllData()
+function STRMapController:OpenNoteEditor(pin)
+    self.noteEditor:Open(pin)
 end
 
-function STRMapController:OnFocusedQuestCleared()
-    self.focusedQuestID = nil
-    self:RefreshAllData()
+function STRMapController:CloseNoteEditor(pin)
+    self.noteEditor:CloseForPin(pin)
 end
 
-function STRMapController:ShowQuestAnnotations(questID)
+function STRMapController:OpenTooltipForAnnotation(pin)
+    self.pinTooltip:OpenForAnnotation(pin)
+end
+
+function STRMapController:OpenTooltipForDirectCluster(cluster)
+    self.pinTooltip:OpenForDirectCluster(cluster)
+end
+
+function STRMapController:OpenTooltipForOverviewCluster(cluster)
+    self.pinTooltip:OpenForOverviewCluster(cluster)
+end
+
+function STRMapController:CloseTooltip(pin)
+    self.pinTooltip:Close(pin)
+end
+
+function STRMapController:ToggleCluster(cluster)
+    self.clusterPopup:Toggle(cluster)
+end
+
+function STRMapController:CloseCluster(cluster)
+    self.clusterPopup:CloseForCluster(cluster)
+end
+
+function STRMapController:OpenMapForQuest(questID)
     local mapID = self:GetSmallestCommonMapForQuest(questID)
 
     local map = self:GetMap()
@@ -112,120 +145,78 @@ function STRMapController:GetSmallestCommonMapForQuest(questID)
     return someAncestorMapIDs[commonAncestorIndex]
 end
 
-function STRMapController:RefreshAllData()
-    self:RemoveAllData()
-
-    local map = self:GetMap()
-    local projections, clusters = self:ClusterAnnotations(
-            self:GetProjectedAnnotations(),
-            map:GetMapID(),
-            self.focusedQuestID
-    )
-
-    for _, projection in ipairs(projections) do
-        map:AcquirePin("STRMapPinTemplate", {projection.annotation}, projection.x, projection.y)
+function STRMapController:OnClick(canvas, button, x, y)
+    if button ~= "LeftButton" or not IsAltKeyDown() then
+        return false
     end
-    for _, cluster in ipairs(clusters) do
-        map:AcquirePin("STRMapPinTemplate", cluster.annotations, cluster.x, cluster.y)
-    end
-end
 
-function STRMapController:GetProjectedAnnotations()
-    local targetMapID = self:GetMap():GetMapID()
-    local showOnParentMaps = self.focusedQuestID or STR.Data.Options.showOverview
-    local sources = {}
+    local openedMapID = canvas:GetMapID()
+    if not STR.CanAnnotateMapPosition(openedMapID, x, y) then
+        return true
+    end
 
     if self.focusedQuestID then
-        local annotatedMaps = STR.Data.QuestAnnotations[self.focusedQuestID]
-        if annotatedMaps then
-            table.insert(sources, annotatedMaps)
-        end
+        STR.AddQuestAnnotation(self.focusedQuestID, openedMapID, x, y)
     else
-        for _, maps in pairs(STR.Data.QuestAnnotations) do
-            table.insert(sources, maps)
-        end
-        table.insert(sources, STR.Data.MapAnnotations)
+        STR.AddMapAnnotation(openedMapID, x, y)
     end
 
-    local positions = {}
-    for _, annotatedMaps in ipairs(sources) do
-        for sourceMapID, annotations in pairs(annotatedMaps) do
-            if sourceMapID == targetMapID or showOnParentMaps then
-                for _, annotation in ipairs(annotations) do
-                    local x, y = annotation.x, annotation.y
-                    if sourceMapID ~= targetMapID then
-                        x, y = STR.ProjectMapPosition(sourceMapID, targetMapID, x, y)
-                    end
-                    -- Current map can be completely unrelated to the annotation.
-                    -- We don't know it until we call ProjectMapPosition.
-                    if x ~= nil then
-                        table.insert(positions, {annotation = annotation, x = x, y = y})
-                    end
-                end
-            end
-        end
-    end
+    self:RefreshAllData()
 
-    return positions
+    return true
 end
 
-function STRMapController:ClusterAnnotations(positions, targetMapID, focusedQuestID)
-    -- The base map is the map directly referenced by an annotation.
-    -- We don't cluster map and focused quest annotations on their base maps.
-    -- This is so they can be easily deleted until I implement interactive clusters.
-    local realPositions, projectedPositions, clusters = {}, {}, {}
-    for _, position in ipairs(positions) do
-        local isBaseMap = position.annotation.mapID == targetMapID
-        local isMapAnnotation = not position.annotation.questID
-        local isFocusedQuest = position.annotation.questID == focusedQuestID
-        if isBaseMap and (isMapAnnotation or isFocusedQuest) then
-            table.insert(realPositions, position)
-        else
-            table.insert(projectedPositions, position)
-        end
-    end
+function STRMapController:OnAdded(map)
+    MapCanvasDataProviderMixin.OnAdded(self, map)
 
-    local clusterRadius = 0.025
-    local visited = {}
-    for index, position in ipairs(projectedPositions) do
-        if not visited[index] then
-            visited[index] = true
-            local members = {position}
-            local annotations = {}
-            local sumX, sumY = 0, 0
-            local memberIndex = 1
+    self.focusedQuestID = QuestMapFrame.DetailsFrame.questID
 
-            while memberIndex <= #members do
-                local member = members[memberIndex]
-                table.insert(annotations, member.annotation)
-                sumX, sumY = sumX + member.x, sumY + member.y
-                for otherIndex, other in ipairs(projectedPositions) do
-                    if not visited[otherIndex] then
-                        local dx, dy = member.x - other.x, member.y - other.y
-                        if dx * dx + dy * dy <= clusterRadius * clusterRadius then
-                            visited[otherIndex] = true
-                            table.insert(members, other)
-                        end
-                    end
-                end
-                memberIndex = memberIndex + 1
-            end
+    map:RegisterCallback("SetFocusedQuestID", self.OnFocusedQuestChanged, self)
+    map:RegisterCallback("ClearFocusedQuestID", self.OnFocusedQuestCleared, self)
+end
 
-            if #members == 1 then
-                table.insert(realPositions, position)
-            else
-                table.insert(clusters, {
-                    annotations = annotations,
-                    x = sumX / #members,
-                    y = sumY / #members
-                })
-            end
-        end
-    end
+function STRMapController:OnRemoved(map)
+    self.focusedQuestID = nil
 
-    return realPositions, clusters
+    map:UnregisterCallback("SetFocusedQuestID", self)
+    map:UnregisterCallback("ClearFocusedQuestID", self)
+
+    MapCanvasDataProviderMixin.OnRemoved(self, map)
+end
+
+function STRMapController:OnHide()
+    self.clusterPopup:Close()
+    self.pinTooltip:CloseAll()
+    self.noteEditor:Close()
+end
+
+-- NOTE: Not closing the cluster when the canvas changes causes some weird behaviour.
+-- Mostly the expanded cluster going outside of the map and clipping other elements.
+function STRMapController:OnCanvasPanChanged()
+    self.clusterPopup:Close()
+end
+
+function STRMapController:OnCanvasScaleChanged()
+    self.clusterPopup:Close()
+end
+
+function STRMapController:OnCanvasSizeChanged()
+    self.clusterPopup:Close()
+end
+
+function STRMapController:OnFocusedQuestChanged(questID)
+    self.focusedQuestID = questID
+    self:RefreshAllData()
+end
+
+function STRMapController:OnFocusedQuestCleared()
+    self.focusedQuestID = nil
+    self:RefreshAllData()
 end
 
 function STRMapController:RemoveAllData()
-    self:GetMap():RemoveAllPinsByTemplate("STRMapPinTemplate")
+    local map = self:GetMap()
+    map:RemoveAllPinsByTemplate("STRMapAnnotationPinTemplate")
+    map:RemoveAllPinsByTemplate("STRDirectClusterPinTemplate")
+    map:RemoveAllPinsByTemplate("STROverviewClusterPinTemplate")
 end

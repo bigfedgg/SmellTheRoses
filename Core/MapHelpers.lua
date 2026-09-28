@@ -24,18 +24,21 @@ local projectionOverrides = {
     },
 }
 
-function STR.GetMapAncestors(mapID)
-    local ancestors = {}
-    mapID = C_Map.GetMapInfo(mapID).parentMapID
-
-    while mapID ~= 0 do
-        if C_Map.MapHasArt(mapID) then
-            table.insert(ancestors, mapID)
+function STR.ProjectAnnotations(annotations, targetMapID)
+    local positions = {}
+    for _, annotation in ipairs(annotations) do
+        local x, y = annotation.x, annotation.y
+        if annotation.mapID ~= targetMapID then
+            x, y = STR.ProjectMapPosition(annotation.mapID, targetMapID,  x, y)
         end
-        mapID = C_Map.GetMapInfo(mapID).parentMapID
-    end
 
-    return ancestors
+        -- Current map can be completely unrelated to the annotation.
+        -- We don't know it until we call ProjectMapPosition.
+        if x ~= nil then
+            table.insert(positions, { annotation = annotation, x = x, y = y })
+        end
+    end
+    return positions
 end
 
 function STR.ProjectMapPosition(sourceMapID, targetMapID, x, y)
@@ -51,6 +54,20 @@ function STR.ProjectMapPosition(sourceMapID, targetMapID, x, y)
 
     local minX, maxX, minY, maxY = C_Map.GetMapRectOnMap(sourceMapID, targetMapID)
     return minX + x * (maxX - minX), minY + y * (maxY - minY)
+end
+
+function STR.GetMapAncestors(mapID)
+    local ancestors = {}
+    mapID = C_Map.GetMapInfo(mapID).parentMapID
+
+    while mapID ~= 0 do
+        if C_Map.MapHasArt(mapID) then
+            table.insert(ancestors, mapID)
+        end
+        mapID = C_Map.GetMapInfo(mapID).parentMapID
+    end
+
+    return ancestors
 end
 
 function STR.CanAnnotateMapPosition(mapID, x, y)
@@ -73,4 +90,93 @@ function STR.CanAnnotateMapPosition(mapID, x, y)
     end
 
     return true
+end
+
+function STR.BuildPinLayout(positions, targetMapID, focusedQuestID)
+    local layout = {
+        annotationPins = {},
+        directClusters = {},
+        overviewClusters = {},
+    }
+    local unfocusedQuestPositions = {}
+    local projectedPositions = {}
+
+    for _, position in ipairs(positions) do
+        local annotation = position.annotation
+        if annotation.mapID ~= targetMapID then
+            table.insert(projectedPositions, position)
+        elseif not annotation.questID or annotation.questID == focusedQuestID then
+            table.insert(layout.annotationPins, position)
+        else
+            table.insert(unfocusedQuestPositions, position)
+        end
+    end
+
+    -- Separate overview clusters (non-interactive) from base map clusters (interactive).
+    -- Eventually for readability I would like to have generic "cluster predicates".
+    local directClusters = STR.ClusterPositions(unfocusedQuestPositions)
+    local overviewClusters = STR.ClusterPositions(projectedPositions)
+
+    for _, cluster in ipairs(directClusters) do
+        if #cluster.members == 1 then
+            table.insert(layout.annotationPins, {
+                annotation = cluster.members[1], x = cluster.x, y = cluster.y,
+            })
+        else
+            table.insert(layout.directClusters, cluster)
+        end
+    end
+    for _, cluster in ipairs(overviewClusters) do
+        if #cluster.members == 1 then
+            table.insert(layout.annotationPins, {
+                annotation = cluster.members[1], x = cluster.x, y = cluster.y,
+            })
+        else
+            table.insert(layout.overviewClusters, cluster)
+        end
+    end
+
+    return layout
+end
+
+function STR.ClusterPositions(positions)
+    local clusters = {}
+    local visited = {}
+    local clusterRadius = 0.025
+    local radiusSquared = clusterRadius * clusterRadius
+
+    for seedIndex, seed in ipairs(positions) do
+        if not visited[seedIndex] then
+            visited[seedIndex] = true
+            local pending = {seed}
+            local members = {}
+            local nextIndex = 1
+            local sumX, sumY = 0, 0
+
+            while nextIndex <= #pending do
+                local position = pending[nextIndex]
+                nextIndex = nextIndex + 1
+                table.insert(members, position.annotation)
+                sumX, sumY = sumX + position.x, sumY + position.y
+
+                for candidateIndex, candidate in ipairs(positions) do
+                    if not visited[candidateIndex] then
+                        local dx = position.x - candidate.x
+                        local dy = position.y - candidate.y
+                        if dx * dx + dy * dy <= radiusSquared then
+                            visited[candidateIndex] = true
+                            table.insert(pending, candidate)
+                        end
+                    end
+                end
+            end
+
+            table.insert(clusters, {
+                members = members,
+                x = sumX / #members,
+                y = sumY / #members,
+            })
+        end
+    end
+    return clusters
 end

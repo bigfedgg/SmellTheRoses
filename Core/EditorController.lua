@@ -1,23 +1,10 @@
 local _, STR = ...
-local STRNoteEditorContainer
 
-function STR.SetupNoteEditor()
+function STR.CreateNoteEditor()
     -- Add the note editor container to the WorldMapFrame.
     -- NOTE: The editor is constructed as a dropdown menu, inspired by the native map menus.
     -- I like how those menus look and I didn't want to reinvent them, so here we are...
-    STRNoteEditorContainer = WorldMapFrame:AddOverlayFrame("STRNoteEditorDropdownTemplate", "DROPDOWNBUTTON")
-end
-
-function STR.OpenEditorFrameForPin(pin)
-    GameTooltip:Hide()
-    STRNoteEditorContainer:CloseEditor()
-    STRNoteEditorContainer:OpenEditor(pin)
-end
-
-function STR.CloseEditorFrameForPin(pin)
-    if STRNoteEditorContainer.pin == pin then
-        STRNoteEditorContainer:CloseEditor()
-    end
+    return WorldMapFrame:AddOverlayFrame("STRNoteEditorDropdownTemplate", "DROPDOWNBUTTON")
 end
 
 -- Controller for STRNoteEditorDropdownTemplate.
@@ -33,13 +20,15 @@ function STRNoteEditorContainerController:OnLoad()
         local editorFrame = rootDescription:CreateTemplate("STRNoteEditorFrameTemplate")
         editorFrame:AddInitializer(function(editor, _, menu)
             container.editor = editor
-            editor:Initialize(container.pin.annotations[1], menu)
+            editor:Initialize(container.pin.annotation, menu)
             return editor:GetSize()
         end)
     end)
 end
 
-function STRNoteEditorContainerController:OpenEditor(pin)
+function STRNoteEditorContainerController:Open(pin)
+    GameTooltip:Hide()
+    self:Close()
     self.pin = pin
 
     self:ClearAllPoints()
@@ -50,9 +39,15 @@ function STRNoteEditorContainerController:OpenEditor(pin)
     self:OpenMenu()
 end
 
-function STRNoteEditorContainerController:CloseEditor()
+function STRNoteEditorContainerController:CloseForPin(pin)
+    if self.pin == pin then
+        self:Close()
+    end
+end
+
+function STRNoteEditorContainerController:Close()
     if self:IsMenuOpen() then
-        self:CloseMenu("DummyReason")
+        self:CloseMenu()
     end
     self:Hide()
 end
@@ -78,7 +73,7 @@ end
 
 function STRNoteEditorContainerController:Refresh()
     if not self.pin then
-        self:CloseEditor()
+        self:Close()
     end
 end
 
