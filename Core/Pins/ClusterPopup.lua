@@ -77,7 +77,7 @@ function ClusterPopup:CreateShadow()
 end
 
 function ClusterPopup:CreateCloseButton()
-    local button = CreateFrame("Button", nil, self, "POIButtonTemplate")
+    local button = CreateFrame("Button", nil, self, "STRPinTemplate")
     button:SetPoint("CENTER")
     button:SetScript("OnClick", function()
         self:Close()

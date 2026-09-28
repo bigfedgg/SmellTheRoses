@@ -1,32 +1,59 @@
 <Ui xmlns="http://www.blizzard.com/wow/ui/">
+    <Button name="STRPinTemplate" inherits="POIButtonTemplate" virtual="true">
+        <NormalTexture parentKey="NormalTexture"
+                       atlas="UI-QuestPoi-QuestNumber"
+                       useAtlasSize="true">
+            <Anchors>
+                <Anchor point="CENTER"/>
+            </Anchors>
+        </NormalTexture>
+        <PushedTexture parentKey="PushedTexture"
+                       atlas="UI-QuestPoi-QuestNumber-Pressed"
+                       useAtlasSize="true">
+            <Anchors>
+                <Anchor point="CENTER"/>
+            </Anchors>
+        </PushedTexture>
+        <Layers>
+            <Layer level="OVERLAY">
+                <Texture parentKey="HighlightTexture"
+                         atlas="UI-QuestPoi-InnerGlow"
+                         useAtlasSize="true"
+                         alphaMode="ADD"
+                         hidden="true">
+                    <Anchors>
+                        <Anchor point="CENTER"/>
+                    </Anchors>
+                </Texture>
+            </Layer>
+        </Layers>
+    </Button>
+
     <Button name="STRMapAnnotationPinTemplate"
-            inherits="POIButtonTemplate"
+            inherits="STRPinTemplate"
             mixin="STRMapAnnotationPinMixin"
             virtual="true">
     </Button>
 
     <Button name="STRClusterAnnotationPinTemplate"
-            inherits="POIButtonTemplate"
+            inherits="STRPinTemplate"
             mixin="STRAnnotationButtonMixin"
+            registerForClicks="LeftButtonUp, RightButtonUp"
             virtual="true">
         <Scripts>
-            <OnLoad inherit="append">
-                self:RegisterForClicks("LeftButtonUp", "RightButtonUp")
-            </OnLoad>
-            <OnClick method="OnClick"/>
             <OnEnter method="OnMouseEnter"/>
             <OnLeave method="OnMouseLeave"/>
         </Scripts>
     </Button>
 
     <Button name="STRDirectClusterPinTemplate"
-            inherits="POIButtonTemplate"
+            inherits="STRPinTemplate"
             mixin="STRDirectClusterPinMixin"
             virtual="true">
     </Button>
 
     <Button name="STROverviewClusterPinTemplate"
-            inherits="POIButtonTemplate"
+            inherits="STRPinTemplate"
             mixin="STROverviewClusterPinMixin"
             virtual="true">
     </Button>
