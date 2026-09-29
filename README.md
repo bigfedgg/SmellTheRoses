@@ -12,20 +12,20 @@ StR is a minimal addon for World of Warcraft: Forever that helps you in your que
 
 ## Usage
 
-You just accepted a quest. It tells you to kill 10 Plainstriders to the South East. With StR, you **open the quest in the quest journal**, **`Alt-Click` somewhere to the South East to add an annotation**, then `Right-Click` the annotation to add a note: "10 Plainstriders". Now while questing you can **hover over the annotation to see its content**, **click the annotation to open the quest**, or **click the quest to go to its annotations**. An indicator will also appear in the quest journal and quest tracker to let you know you have it annotated, exactly like Blizzard's default quest objectives.
+You just accepted a quest. It tells you to kill 10 Plainstriders to the South East. With StR, you open the quest in the quest journal, `Alt-Click` somewhere to the South East to add an annotation, then `Right-Click` the annotation to add a note: "10 Plainstriders". Now while questing you can hover over the annotation to see its content, click the annotation to open the quest, or click the quest to go to its annotations. An indicator will also appear in the quest journal and quest tracker to let you know you have it annotated, exactly like Blizzard's default quest objectives.
 
 <p align="center">
   <a href=".previews/1-map-with-quests.png" target="_blank"><img src=".previews/1-map-with-quests.png" alt="See your annotations with quest indicators in the journal" width="300"></a>
   <a href=".previews/5-open-quest.png" target="_blank"><img src=".previews/5-open-quest.png" alt="Click on a quest to show only its annotations" width="300"></a>
 </p>
 
-While killing the Plainstriders, you discover a cave with an Elite. You're not ready for it just yet, so you open your map and **`Alt-Click` your position to add a map annotation**. These are not linked to a quest and have their own pin icon.
+While killing the Plainstriders, you discover a cave with an Elite. You're not ready for it just yet, so you open your map and `Alt-Click` your position to add a map annotation. These are not linked to a quest and have their own pin icon.
 
-Once done with the Plainstriders you go back to the quest-giver and turn-in the quest. If auto-deletion is enabled in the addon configuration (it's enabled by default), your **quest annotations will be deleted after you turn in the quest**. Your map annotation will be unaffected.
+Once done with the Plainstriders you go back to the quest-giver and turn-in the quest. If auto-deletion is enabled in the addon configuration (it's enabled by default), your quest annotations will be deleted after you turn in the quest. Your map annotation will be unaffected.
 
 > [!TIP]
-> - You can **freely navigate and annotate the world map while a quest is open**. This is useful when a quest has objectives in multiple maps, or if you want to mark the quest giver's location in addition to the objective. On top of that, **clicking a quest with multi-map annotations will select the proper map level to show all the annotations at the same time**.
-> - StR will **cluster quest annotations in the same location** to keep your map tidy. Click the cluster to expand it and interact with individual annotations.
+> - You can freely navigate and annotate the world map while a quest is open. This is useful when a quest has objectives in multiple maps, or if you want to mark the quest giver's location in addition to the objective. On top of that, clicking a quest with multi-map annotations will select the proper map level to show all the annotations at the same time.
+> - StR will cluster quest annotations in the same location to keep your map tidy. Click the cluster to expand it and interact with individual annotations.
 
 <p align="center">
   <a href=".previews/2-cluster-hover.png" target="_blank"><img src=".previews/2-cluster-hover.png" alt="Hover over a cluster to peek at its quests" width="300"></a>
