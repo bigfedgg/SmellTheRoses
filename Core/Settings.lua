@@ -43,7 +43,7 @@ function STR.SetupSettings()
             STR.Data.Options,
             Settings.VarType.Boolean,
             "Disable with Blizzard objectives",
-            true
+            false
     )
     Settings.CreateCheckbox(
             category,

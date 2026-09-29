@@ -1,6 +1,3 @@
-## 1.2.0
+## 1.2.1
 
-- Made clusters interactive: Now you can click a cluster to bring up its annotations. The annotations respond to the usual interactions.
-- Improved annotation pins to look more like the default Blizzard quest pins.
-- Added an indicator beside annotated quests in the journal and objective tracker, similar to the default behavior if you enable Blizzard's Quest Objectives.
-- Added an option to effectively disable the addon when Blizzard's Quest Objectives are enabled.
+- By default, the addon will now stay **enabled** when Blizzard's Quest Objectives are enabled: With the previous default, a new user could be confused why the addon was not working. You had to know the feature exist to think about disabling Quest Objectives.
