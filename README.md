@@ -15,8 +15,8 @@ StR is a minimal addon for World of Warcraft: Forever that helps you in your que
 You just accepted a quest. It tells you to kill 10 Plainstriders to the South East. With StR, you **open the quest in the quest journal**, **`Alt-Click` somewhere to the South East to add an annotation**, then `Right-Click` the annotation to add a note: "10 Plainstriders". Now while questing you can **hover over the annotation to see its content**, **click the annotation to open the quest**, or **click the quest to go to its annotations**. An indicator will also appear in the quest journal and quest tracker to let you know you have it annotated, exactly like Blizzard's default quest objectives.
 
 <p align="center">
-  <a href=".previews/1-map-with-quests.png"><img src=".previews/1-map-with-quests.png" alt="See your annotations with quest indicators in the journal" width="400"></a>
-  <a href=".previews/5-open-quest.png"><img src=".previews/5-open-quest.png" alt="Click on a quest to show only its annotations" width="400"></a>
+  <a href=".previews/1-map-with-quests.png"><img src=".previews/1-map-with-quests.png" alt="See your annotations with quest indicators in the journal" width="300"></a>
+  <a href=".previews/5-open-quest.png"><img src=".previews/5-open-quest.png" alt="Click on a quest to show only its annotations" width="300"></a>
 </p>
 
 While killing the Plainstriders, you discover a cave with an Elite. You're not ready for it just yet, so you open your map and **`Alt-Click` your position to add a map annotation**. These are not linked to a quest and have their own pin icon.
@@ -28,8 +28,8 @@ Once done with the Plainstriders you go back to the quest-giver and turn-in the 
 > - StR will **cluster quest annotations in the same location** to keep your map tidy. Click the cluster to expand it and interact with individual annotations.
 
 <p align="center">
-  <a href=".previews/2-cluster-hover.png"><img src=".previews/2-cluster-hover.png" alt="Hover over a cluster to peek at its quests" width="400"></a>
-  <a href=".previews/7-multi-map-annotations.png"><img src=".previews/7-multi-map-annotations.png" alt="Add multiple annotations on different maps to a quest" width="400"></a>
+  <a href=".previews/2-cluster-hover.png"><img src=".previews/2-cluster-hover.png" alt="Hover over a cluster to peek at its quests" width="300"></a>
+  <a href=".previews/7-multi-map-annotations.png"><img src=".previews/7-multi-map-annotations.png" alt="Add multiple annotations on different maps to a quest" width="300"></a>
 </p>
 
 ## Options
@@ -59,7 +59,7 @@ With this option enabled, annotations will appear on their parent maps. So an an
 - Default: Enabled
 
 <p align="center">
-  <a href=".previews/6-annotation-overview.png"><img src=".previews/6-annotation-overview.png" alt="See annotation overviews in parent maps" width="400"></a>
+  <a href=".previews/6-annotation-overview.png"><img src=".previews/6-annotation-overview.png" alt="See annotation overviews in parent maps" width="300"></a>
 </p>
 
 > [!NOTE]
