@@ -5,6 +5,7 @@ StR is a minimal addon for World of Warcraft: Forever that helps you in your que
 ## Installation
 
 - Install through [CurseForge](https://www.curseforge.com/wow/addons/smell-the-roses)
+- Install through [Wago](https://addons.wago.io/addons/smell-the-roses)
 - Install manually:
   - Download the [latest release](https://github.com/bigfedgg/SmellTheRoses/releases/latest)
   - Unpack the archive
@@ -23,14 +24,14 @@ While killing the Plainstriders, you discover a cave with an Elite. You're not r
 
 Once done with the Plainstriders you go back to the quest-giver and turn-in the quest. If auto-deletion is enabled in the addon configuration (it's enabled by default), your quest annotations will be deleted after you turn in the quest. Your map annotation will be unaffected.
 
-> [!TIP]
-> - You can freely navigate and annotate the world map while a quest is open. This is useful when a quest has objectives in multiple maps, or if you want to mark the quest giver's location in addition to the objective. On top of that, clicking a quest with multi-map annotations will select the proper map level to show all the annotations at the same time.
-> - StR will cluster quest annotations in the same location to keep your map tidy. Click the cluster to expand it and interact with individual annotations.
-
 <p align="center">
   <a href=".previews/2-cluster-hover.png" target="_blank"><img src=".previews/2-cluster-hover.png" alt="Hover over a cluster to peek at its quests" width="300"></a>
   <a href=".previews/7-multi-map-annotations.png" target="_blank"><img src=".previews/7-multi-map-annotations.png" alt="Add multiple annotations on different maps to a quest" width="300"></a>
 </p>
+
+> [!TIP]
+> - You can freely navigate and annotate the world map while a quest is open. This is useful when a quest has objectives in multiple maps, or if you want to mark the quest giver's location in addition to the objective. On top of that, clicking a quest with multi-map annotations will select the proper map level to show all the annotations at the same time.
+> - StR will cluster quest annotations in the same location to keep your map tidy. Click the cluster to expand it and interact with individual annotations.
 
 ## Options
 

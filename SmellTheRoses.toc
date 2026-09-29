@@ -6,6 +6,7 @@
 ## IconTexture: Interface\AddOns\SmellTheRoses\Art\SmellTheRoses.blp
 ## SavedVariablesPerCharacter: SmellTheRosesDB
 ## X-Curse-Project-ID: 1714305
+## X-Wago-ID: v63QQBGb
 
 Core/Data.lua
 Core/EditorController.lua
