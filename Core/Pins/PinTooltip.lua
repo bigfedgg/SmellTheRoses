@@ -43,11 +43,24 @@ function PinTooltip:Begin(owner)
 end
 
 function PinTooltip:AddEntries(members)
+    -- Simple annotations have a title and no note.
+    -- We merge them together when there are multiple.
+    local simpleAnnotations = {}
     for index, annotation in ipairs(members) do
-        if index > 1 then
-            self:AddSeparator()
+        local shouldSkip = false
+        if not annotation.note then
+            if simpleAnnotations[annotation.title] then
+                shouldSkip = true
+            end
+            simpleAnnotations[annotation.title] = true
         end
-        self:AddEntry(annotation, 2)
+
+        if not shouldSkip then
+            if index > 1 then
+                self:AddSeparator()
+            end
+            self:AddEntry(annotation, 2)
+        end
     end
 end
 
