@@ -98,23 +98,23 @@ function STR.BuildPinLayout(positions, targetMapID, focusedQuestID)
         directClusters = {},
         overviewClusters = {},
     }
-    local unfocusedQuestPositions = {}
+    local directPositions = {}
     local projectedPositions = {}
 
     for _, position in ipairs(positions) do
         local annotation = position.annotation
         if annotation.mapID ~= targetMapID then
             table.insert(projectedPositions, position)
-        elseif not annotation.questID or annotation.questID == focusedQuestID then
+        elseif focusedQuestID and annotation.questID == focusedQuestID then
             table.insert(layout.annotationPins, position)
         else
-            table.insert(unfocusedQuestPositions, position)
+            table.insert(directPositions, position)
         end
     end
 
     -- Separate overview clusters (non-interactive) from base map clusters (interactive).
     -- Eventually for readability I would like to have generic "cluster predicates".
-    local directClusters = STR.ClusterPositions(unfocusedQuestPositions)
+    local directClusters = STR.ClusterPositions(directPositions)
     local overviewClusters = STR.ClusterPositions(projectedPositions)
 
     for _, cluster in ipairs(directClusters) do

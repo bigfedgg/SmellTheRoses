@@ -2,6 +2,7 @@
 
 - Implemented annotation sharing with Shift-click.
 - Added account-level map annotations.
+- Map pins will now cluster too.
 
 ## 1.3.0
 

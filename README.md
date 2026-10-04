@@ -31,7 +31,7 @@ Once done with the Plainstriders you go back to the quest-giver and turn-in the 
 
 > [!TIP]
 > - You can freely navigate and annotate the world map while a quest is open. This is useful when a quest has objectives in multiple maps, or if you want to mark the quest giver's location in addition to the objective. On top of that, clicking a quest with multi-map annotations will select the proper map level to show all the annotations at the same time.
-> - StR will cluster quest annotations in the same location to keep your map tidy. Click the cluster to expand it and interact with individual annotations.
+> - StR will cluster annotations in the same location to keep your map tidy. Click the cluster to expand it and interact with individual annotations.
 > - `Shift-Click` an annotation to share it in the chat. The receiver can just click the link to add the annotation to their map.
 > - To make a map annotation visible on all your characters, `Right-Click` it and check "Keep on all characters" below the note.
 
