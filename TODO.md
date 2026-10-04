@@ -1,6 +1,5 @@
 # TODO
 
-- Feature: Allow sharing annotations with other players
 - Feature: Allow making annotations global (different color; forever blue?)
 - Feature: Allow moving annotations and clusters in edit mode (Right-click)
 - Feature: Allow changing the icon and tint of an annotation

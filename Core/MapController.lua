@@ -66,16 +66,19 @@ end
 
 function STRMapController:OpenAnnotation(annotation)
     self.clusterPopup:Close()
+    OpenWorldMap()
 
     if annotation.questID and C_QuestLog.IsOnQuest(annotation.questID) then
         STR.OpenQuestFromPin(annotation.questID)
+    else
+        QuestMapFrame_CloseQuestDetails()
     end
 
     local map = self:GetMap()
     if map:GetMapID() ~= annotation.mapID then
         map:SetMapID(annotation.mapID)
-        map:ResetZoom()
     end
+    map:ResetZoom()
 end
 
 function STRMapController:DeleteAnnotation(annotation)
@@ -158,19 +161,22 @@ function STRMapController:OnClick(canvas, button, x, y)
         return false
     end
 
-    local openedMapID = canvas:GetMapID()
-    if not STR.CanAnnotateMapPosition(openedMapID, x, y) then
+    local openedMapID, error = canvas:GetMapID(), nil
+    if self.focusedQuestID then
+        error = STR.AddQuestAnnotation(self.focusedQuestID, openedMapID, x, y)
+    else
+        error = STR.AddMapAnnotation(openedMapID, x, y)
+    end
+
+    if error == "invalid" then
+        ChatFrameUtil.DisplaySystemMessageInPrimary("The annotation is not valid.")
+        return true
+    elseif error == "duplicate" then
+        ChatFrameUtil.DisplaySystemMessageInPrimary("The annotation already exists.")
         return true
     end
 
-    if self.focusedQuestID then
-        STR.AddQuestAnnotation(self.focusedQuestID, openedMapID, x, y)
-    else
-        STR.AddMapAnnotation(openedMapID, x, y)
-    end
-
     self:RefreshAllData()
-
     return true
 end
 

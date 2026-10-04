@@ -29,7 +29,7 @@ function STR.SetupQuestAnnotationIndicators()
             block.STRAnnotationIndicator:Hide()
         end
     end)
-    hooksecurefunc(STR, "AddQuestAnnotation", STR.UpdateQuestIndicators)
+    hooksecurefunc(STR, "AddAnnotation", STR.UpdateQuestIndicators)
     hooksecurefunc(STR, "RemoveAllQuestAnnotations", STR.UpdateQuestIndicators)
 
     STR.UpdateQuestIndicators()

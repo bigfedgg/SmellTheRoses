@@ -8,6 +8,7 @@ ignore:
     - .github
     - .gitignore
     - install.bat
+    - md-logo.png
     - CHANGELOG.md
     - README.md
     - TODO.md

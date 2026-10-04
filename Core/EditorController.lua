@@ -104,12 +104,41 @@ function STRNoteEditorFrameController:Initialize(annotation, menu)
     editBox:SetHeight(self:GetHeight())
     editBox:SetWidth(self:GetWidth())
 
+    -- Length is byte-based instead of character based because the limit
+    -- comes from allowed hidden bytes when sharing a note. This is all
+    -- because I don't want to implement a full addon message sending system
+    -- or have to depend on Ace3. So this is good enough and should allow
+    -- for large enough notes without having to complicate sharing.
+    local maxContentSize = STR.MaxAnnotationContentSize
+    local title
+    if annotation._allowedMaxCharacters then
+        editBox:SetMaxBytes(0)
+        editBox:SetMaxLetters(annotation._allowedMaxCharacters)
+    else
+        title = STR.EscapeText(annotation.title)
+        editBox:SetMaxLetters(0)
+        editBox:SetMaxBytes(maxContentSize - 1 - #title)
+    end
+
     -- Too lazy to create my own template, so I'm just hooking manually.
     editBox:SetScript("OnTextChanged", function(_, userInput)
         InputScrollFrame_OnTextChanged(editBox, userInput)
 
         if userInput and self.annotation then
             local text = editBox:GetText()
+
+            if not self.annotation._allowedMaxCharacters then
+                -- This seems fine to do on text change from testing
+                local escapedNote = STR.EscapeText(text)
+                if #title + #escapedNote >= maxContentSize then
+                    local previousText = self.annotation.note or ""
+                    local cursorPosition = editBox:GetCursorPosition() - #text + #previousText
+                    editBox:SetText(previousText)
+                    editBox:SetCursorPosition(cursorPosition)
+                    return
+                end
+            end
+
             self.annotation.note = text ~= "" and text or nil
         end
     end)

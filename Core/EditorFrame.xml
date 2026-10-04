@@ -28,7 +28,6 @@
                          inherits="InputScrollFrameTemplate"
                          setAllPoints="true">
                 <KeyValues>
-                    <KeyValue key="maxLetters" type="number" value="2000"/>
                     <KeyValue key="hideCharCount" type="boolean" value="true"/>
                 </KeyValues>
             </ScrollFrame>

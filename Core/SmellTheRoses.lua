@@ -14,6 +14,7 @@ STRInitializer:SetScript("OnEvent", function(self, _, loadedAddon)
     STR.SetupQuestAnnotationDisplay()
     STR.SetupQuestAnnotationIndicators()
     STR.SetupDeleteAnnotationsOnQuestTurnIn()
+    STR.SetupAnnotationSharing()
 
     self:UnregisterEvent("ADDON_LOADED")
 end)

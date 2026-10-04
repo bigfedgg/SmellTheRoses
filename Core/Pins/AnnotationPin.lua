@@ -28,6 +28,12 @@ function STRAnnotationButtonMixin:OnClick(button)
         return
     end
 
+    -- Shift+Click to share a pin.
+    if button == "LeftButton" and IsShiftKeyDown() then
+        STR.ShareAnnotation(self.annotation)
+        return
+    end
+
     -- Click a pin to go to its map.
     -- If it's a quest pin also open its quest details.
     if button == "LeftButton" then

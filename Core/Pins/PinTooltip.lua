@@ -15,6 +15,7 @@ function PinTooltip:OpenForAnnotation(pin)
     self:AddEntry(pin.annotation, 0)
     self:AddText(" ", NORMAL_FONT_COLOR)
     self:AddText("<Right click to edit annotation>", GREEN_FONT_COLOR)
+    self:AddText("<Shift click to share annotation>", GREEN_FONT_COLOR)
     self:AddText("<Alt click to remove annotation>", GREEN_FONT_COLOR)
     self:Finish()
 end
@@ -60,13 +61,7 @@ function PinTooltip:AddEntries(members)
 end
 
 function PinTooltip:AddEntry(annotation, noteLines)
-    local title
-    if annotation.questID then
-        title = annotation.questTitle
-    else
-        title = C_Map.GetMapInfo(annotation.mapID).name
-    end
-    self:AddText(title, HIGHLIGHT_FONT_COLOR, GameTooltipHeaderText)
+    self:AddText(annotation.title, HIGHLIGHT_FONT_COLOR, GameTooltipHeaderText)
 
     if annotation.note then
         local line = self:AddText(annotation.note, NORMAL_FONT_COLOR, GameTooltipText, noteLines)

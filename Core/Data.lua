@@ -1,4 +1,6 @@
 local _, STR = ...
+local Local = {}
+local Version = 2
 
 function STR.LoadData()
     SmellTheRosesDB = SmellTheRosesDB or {}
@@ -10,21 +12,54 @@ function STR.LoadData()
     }
 
     STR.Data = SmellTheRosesDB
+
+    Local.Migrate()
 end
 
 function STR.AddQuestAnnotation(questID, mapID, x, y)
-    STR.Data.QuestAnnotations[questID] = STR.Data.QuestAnnotations[questID] or {}
-    STR.Data.QuestAnnotations[questID][mapID] = STR.Data.QuestAnnotations[questID][mapID] or {}
-
-    table.insert(STR.Data.QuestAnnotations[questID][mapID], {
+    return STR.AddAnnotation({
         questID = questID,
-        questTitle = C_QuestLog.GetTitleForQuestID(questID),
         mapID = mapID,
         x = x,
         y = y,
-        icon = "quest",
-        note = nil
+        title = C_QuestLog.GetTitleForQuestID(questID)
     })
+end
+
+function STR.AddMapAnnotation(mapID, x, y)
+    return STR.AddAnnotation({
+        mapID = mapID,
+        x = x,
+        y = y,
+        title = C_Map.GetMapInfo(mapID).name
+    })
+end
+
+function STR.AddAnnotation(annotation)
+    local a = annotation
+
+    a.x, a.y = RoundToSignificantDigits(a.x, 4), RoundToSignificantDigits(a.y, 4)
+    if not C_Map.GetMapInfo(a.mapID) or not STR.CanAnnotateMapPosition(a.mapID, a.x, a.y) then
+        return "invalid"
+    end
+
+    local mapAnnotations
+    if a.questID then
+        STR.Data.QuestAnnotations[a.questID] = STR.Data.QuestAnnotations[a.questID] or {}
+        STR.Data.QuestAnnotations[a.questID][a.mapID] = STR.Data.QuestAnnotations[a.questID][a.mapID] or {}
+        mapAnnotations = STR.Data.QuestAnnotations[a.questID][a.mapID]
+        a.icon = "quest"
+    else
+        STR.Data.MapAnnotations[a.mapID] = STR.Data.MapAnnotations[a.mapID] or {}
+        mapAnnotations = STR.Data.MapAnnotations[a.mapID]
+        a.icon = "map"
+    end
+
+    if Local.HasAnnotation(mapAnnotations, a.x, a.y, a.note) then
+        return "duplicate"
+    end
+
+    table.insert(mapAnnotations, a)
 end
 
 function STR.RemoveQuestAnnotation(annotation)
@@ -52,16 +87,12 @@ function STR.RemoveAllQuestAnnotations(questID)
     STR.Data.QuestAnnotations[questID] = nil
 end
 
-function STR.AddMapAnnotation(mapID, x, y)
-    STR.Data.MapAnnotations[mapID] = STR.Data.MapAnnotations[mapID] or {}
-
-    table.insert(STR.Data.MapAnnotations[mapID], {
-        mapID = mapID,
-        x = x,
-        y = y,
-        icon = "map",
-        note = nil
-    })
+function STR.CleanupAllTurnedInQuestAnnotations()
+    for questID in pairs(STR.Data.QuestAnnotations) do
+        if C_QuestLog.IsQuestFlaggedCompleted(questID) and not C_QuestLog.IsOnQuest(questID) then
+            STR.RemoveAllQuestAnnotations(questID)
+        end
+    end
 end
 
 function STR.RemoveMapAnnotation(annotation)
@@ -76,14 +107,6 @@ function STR.RemoveMapAnnotation(annotation)
                 STR.Data.MapAnnotations[annotation.mapID] = nil
             end
             return
-        end
-    end
-end
-
-function STR.CleanupAllTurnedInQuestAnnotations()
-    for questID in pairs(STR.Data.QuestAnnotations) do
-        if C_QuestLog.IsQuestFlaggedCompleted(questID) and not C_QuestLog.IsOnQuest(questID) then
-            STR.RemoveAllQuestAnnotations(questID)
         end
     end
 end
@@ -129,4 +152,43 @@ function STR.SelectAnnotationsToDisplay(targetMapID, focusedQuestID)
     end
 
     return annotations
+end
+
+function Local.HasAnnotation(annotations, x, y, note)
+    for _, annotation in ipairs(annotations) do
+        if annotation.x == x and annotation.y == y and (annotation.note or "") == (note or "") then
+            return true
+        end
+    end
+    return false
+end
+
+function Local.Migrate()
+    -- Version 2:
+    -- >>>> Coordinates now use 4 digits for simpler serialisation
+    -- >>>> Map titles are now stored to simplify title handling
+    -- >>>> Existing annotations need to keep their 2000 character limit
+    if not STR.Data.Version then
+        for _, questMaps in pairs(STR.Data.QuestAnnotations) do
+            for _, annotations in pairs(questMaps) do
+                for _, annotation in ipairs(annotations) do
+                    annotation.x = RoundToSignificantDigits(annotation.x, 4)
+                    annotation.y = RoundToSignificantDigits(annotation.y, 4)
+                    annotation.title = annotation.questTitle
+                    annotation.questTitle = nil
+                    annotation._allowedMaxCharacters = 2000
+                end
+            end
+        end
+        for _, annotations in pairs(STR.Data.MapAnnotations) do
+            for _, annotation in ipairs(annotations) do
+                annotation.x = RoundToSignificantDigits(annotation.x, 4)
+                annotation.y = RoundToSignificantDigits(annotation.y, 4)
+                annotation.title = C_Map.GetMapInfo(annotation.mapID).name
+                annotation._allowedMaxCharacters = 2000
+            end
+        end
+    end
+
+    STR.Data.Version = Version
 end
