@@ -15,6 +15,29 @@
             </Anchors>
         </PushedTexture>
         <Layers>
+            <Layer level="ARTWORK" textureSubLevel="1">
+                <Texture parentKey="GlobalFill"
+                         atlas="UI-QuestPoi-QuestNumber-SuperTracked"
+                         useAtlasSize="true"
+                         desaturated="true"
+                         hidden="true">
+                    <Color r="0.15" g="0.64" b="0.8"/>
+                    <Anchors>
+                        <Anchor point="CENTER"/>
+                    </Anchors>
+                </Texture>
+                <MaskTexture atlas="CircleMaskScalable"
+                             hWrapMode="CLAMPTOBLACKADDITIVE"
+                             vWrapMode="CLAMPTOBLACKADDITIVE">
+                    <Size x="18" y="18"/>
+                    <Anchors>
+                        <Anchor point="CENTER"/>
+                    </Anchors>
+                    <MaskedTextures>
+                        <MaskedTexture childKey="GlobalFill"/>
+                    </MaskedTextures>
+                </MaskTexture>
+            </Layer>
             <Layer level="OVERLAY">
                 <Texture parentKey="HighlightTexture"
                          atlas="UI-QuestPoi-InnerGlow"

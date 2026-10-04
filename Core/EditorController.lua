@@ -14,15 +14,29 @@ function STRNoteEditorContainerController:OnLoad()
     WowStyle1DropdownMixin.OnLoad(self)
 
     self:SetupMenu(function (container, rootDescription)
+        local annotation = container.pin.annotation
         rootDescription:SetMinimumWidth(container.menuWidth)
         rootDescription:CreateTitle("Note:")
 
         local editorFrame = rootDescription:CreateTemplate("STRNoteEditorFrameTemplate")
         editorFrame:AddInitializer(function(editor, _, menu)
             container.editor = editor
-            editor:Initialize(container.pin.annotation, menu)
+            editor:Initialize(annotation, menu)
             return editor:GetSize()
         end)
+
+        if not annotation.questID then
+            rootDescription:CreateSpacer(10)
+            rootDescription:CreateCheckbox(
+                    "Keep on all characters",
+                    function()
+                        return annotation.isGlobal
+                    end,
+                    function()
+                        STR.ToggleGlobalMapAnnotation(annotation)
+                        container.pin:SetAnnotation(annotation)
+                    end)
+        end
     end)
 end
 

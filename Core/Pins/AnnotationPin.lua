@@ -13,6 +13,7 @@ function STRAnnotationButtonMixin:SetAnnotation(annotation)
     self.annotation = annotation
     self.Display:SetIconShown(true)
     self.Display:SetAtlas(nil, nil, annotationIcons[annotation.icon])
+    self.GlobalFill:SetShown(annotation.isGlobal or false)
 end
 
 function STRAnnotationButtonMixin:ClearAnnotation()

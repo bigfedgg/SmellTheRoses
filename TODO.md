@@ -3,7 +3,6 @@
 - Fix: Make Zephras project in Kalimdor near Feralas instead of Azeroth
 - Fix: Make capital cities project on their zone instead of Azeroth
 - Fix: Add glow to pin and quest in journal when hovering over annotations
-- Feature: Allow making annotations global (different color; forever blue?)
 - Feature: Allow moving annotations and clusters in edit mode (Right-click)
 - Feature: Allow changing the icon and tint of an annotation
 - Feature: Show annotations in the minimap

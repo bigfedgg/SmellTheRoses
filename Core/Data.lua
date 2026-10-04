@@ -10,8 +10,11 @@ function STR.LoadData()
         deleteOnTurnIn = true,
         showOverview = true
     }
-
     STR.Data = SmellTheRosesDB
+
+    SmellTheRosesGlobalDB = SmellTheRosesGlobalDB or {}
+    SmellTheRosesGlobalDB.MapAnnotations = SmellTheRosesGlobalDB.MapAnnotations or {}
+    STR.GlobalData = SmellTheRosesGlobalDB
 
     Local.Migrate()
 end
@@ -50,8 +53,9 @@ function STR.AddAnnotation(annotation)
         mapAnnotations = STR.Data.QuestAnnotations[a.questID][a.mapID]
         a.icon = "quest"
     else
-        STR.Data.MapAnnotations[a.mapID] = STR.Data.MapAnnotations[a.mapID] or {}
-        mapAnnotations = STR.Data.MapAnnotations[a.mapID]
+        local mapAnnotationStore = Local.GetMapAnnotationStore(annotation)
+        mapAnnotationStore[a.mapID] = mapAnnotationStore[a.mapID] or {}
+        mapAnnotations = mapAnnotationStore[a.mapID]
         a.icon = "map"
     end
 
@@ -97,18 +101,28 @@ end
 
 function STR.RemoveMapAnnotation(annotation)
     -- NOTE: The number of annotations per map is expected to be small.
-    local mapAnnotations = STR.Data.MapAnnotations[annotation.mapID]
+    local mapAnnotationStore = Local.GetMapAnnotationStore(annotation)
+    local mapAnnotations = mapAnnotationStore[annotation.mapID]
 
     for candidateID, candidate in ipairs(mapAnnotations) do
         if candidate == annotation then
             table.remove(mapAnnotations, candidateID)
 
             if #mapAnnotations == 0 then
-                STR.Data.MapAnnotations[annotation.mapID] = nil
+                mapAnnotationStore[annotation.mapID] = nil
             end
             return
         end
     end
+end
+
+function STR.ToggleGlobalMapAnnotation(annotation)
+    STR.RemoveMapAnnotation(annotation)
+    annotation.isGlobal = not annotation.isGlobal or nil
+
+    local annotationMaps = Local.GetMapAnnotationStore(annotation)
+    annotationMaps[annotation.mapID] = annotationMaps[annotation.mapID] or {}
+    table.insert(annotationMaps[annotation.mapID], annotation)
 end
 
 function STR.SelectAnnotationsToDisplay(targetMapID, focusedQuestID)
@@ -130,8 +144,10 @@ function STR.SelectAnnotationsToDisplay(targetMapID, focusedQuestID)
                 table.insert(annotations, annotation)
             end
         end
-        for _, annotation in ipairs(STR.Data.MapAnnotations[targetMapID] or {}) do
-            table.insert(annotations, annotation)
+        for _, annotationMaps in ipairs({STR.Data.MapAnnotations, STR.GlobalData.MapAnnotations}) do
+            for _, annotation in ipairs(annotationMaps[targetMapID] or {}) do
+                table.insert(annotations, annotation)
+            end
         end
 
     -- If overview is enabled, return all annotations (they will be filtered during projection).
@@ -144,14 +160,20 @@ function STR.SelectAnnotationsToDisplay(targetMapID, focusedQuestID)
                 end
             end
         end
-        for _, mapAnnotations in pairs(STR.Data.MapAnnotations) do
-            for _, annotation in ipairs(mapAnnotations) do
-                table.insert(annotations, annotation)
+        for _, annotationMaps in ipairs({STR.Data.MapAnnotations, STR.GlobalData.MapAnnotations}) do
+            for _, mapAnnotations in pairs(annotationMaps) do
+                for _, annotation in ipairs(mapAnnotations) do
+                    table.insert(annotations, annotation)
+                end
             end
         end
     end
 
     return annotations
+end
+
+function Local.GetMapAnnotationStore(annotation)
+    return annotation.isGlobal and STR.GlobalData.MapAnnotations or STR.Data.MapAnnotations
 end
 
 function Local.HasAnnotation(annotations, x, y, note)
