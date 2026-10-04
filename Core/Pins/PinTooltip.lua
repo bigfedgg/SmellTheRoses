@@ -15,7 +15,6 @@ function PinTooltip:OpenForAnnotation(pin)
     self:AddEntry(pin.annotation, 0)
     self:AddText(" ", NORMAL_FONT_COLOR)
     self:AddText("<Right click to edit annotation>", GREEN_FONT_COLOR)
-    self:AddText("<Shift click to share annotation>", GREEN_FONT_COLOR)
     self:AddText("<Alt click to remove annotation>", GREEN_FONT_COLOR)
     self:Finish()
 end
@@ -23,8 +22,6 @@ end
 function PinTooltip:OpenForCluster(cluster)
     self:Begin(cluster)
     self:AddEntries(cluster.members)
-    self:AddText(" ", NORMAL_FONT_COLOR)
-    self:AddText("<Click to expand annotations>", GREEN_FONT_COLOR)
     self:Finish()
 end
 
