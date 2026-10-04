@@ -13,8 +13,7 @@ Core\Data.lua
 Core\EditorController.lua
 Core\EditorFrame.xml
 Core\Pins\AnnotationPin.lua
-Core\Pins\DirectClusterPin.lua
-Core\Pins\OverviewClusterPin.lua
+Core\Pins\ClusterPin.lua
 Core\Pins\PinTooltip.lua
 Core\Pins\ClusterPopup.lua
 Core\Pins\PinTemplates.xml

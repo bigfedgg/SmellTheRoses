@@ -20,17 +20,11 @@ function PinTooltip:OpenForAnnotation(pin)
     self:Finish()
 end
 
-function PinTooltip:OpenForDirectCluster(cluster)
+function PinTooltip:OpenForCluster(cluster)
     self:Begin(cluster)
     self:AddEntries(cluster.members)
     self:AddText(" ", NORMAL_FONT_COLOR)
     self:AddText("<Click to expand annotations>", GREEN_FONT_COLOR)
-    self:Finish()
-end
-
-function PinTooltip:OpenForOverviewCluster(cluster)
-    self:Begin(cluster)
-    self:AddEntries(cluster.members)
     self:Finish()
 end
 

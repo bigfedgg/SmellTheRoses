@@ -112,7 +112,7 @@ function STR.BuildPinLayout(positions, targetMapID, focusedQuestID)
         end
     end
 
-    -- Separate overview clusters (non-interactive) from base map clusters (interactive).
+    -- Keep annotations on the current map separate from projected annotations.
     -- Eventually for readability I would like to have generic "cluster predicates".
     local directClusters = STR.ClusterPositions(directPositions)
     local overviewClusters = STR.ClusterPositions(projectedPositions)

@@ -103,12 +103,8 @@ function STRMapController:OpenTooltipForAnnotation(pin)
     self.pinTooltip:OpenForAnnotation(pin)
 end
 
-function STRMapController:OpenTooltipForDirectCluster(cluster)
-    self.pinTooltip:OpenForDirectCluster(cluster)
-end
-
-function STRMapController:OpenTooltipForOverviewCluster(cluster)
-    self.pinTooltip:OpenForOverviewCluster(cluster)
+function STRMapController:OpenTooltipForCluster(cluster)
+    self.pinTooltip:OpenForCluster(cluster)
 end
 
 function STRMapController:CloseTooltip(pin)
