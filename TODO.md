@@ -1,7 +1,6 @@
 # TODO
 
 - Fix: Add glow to pin and quest in journal when hovering over annotations
-- Fix: Separate and order annotations in tooltips (ordered quests then maps)
 - Feature: Allow moving annotations and clusters in edit mode (Right-click)
 - Feature: Allow changing the icon and tint of an annotation
 - Feature: Show annotations in overlapping/neighboring maps

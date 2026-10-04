@@ -12,6 +12,19 @@ function STRClusterPinMixin:OnLoad()
 end
 
 function STRClusterPinMixin:OnAcquired(members, x, y)
+    table.sort(members, function(a, b)
+        -- Map last.
+        if not a.questID then
+            return false
+        end
+        -- Quest first.
+        if not b.questID then
+            return true
+        end
+        -- Ordered quests.
+        return a.questID < b.questID
+    end)
+
     self.members = members
     self.Count:SetText(#members)
     self:SetPosition(x, y)

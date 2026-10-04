@@ -2,7 +2,7 @@
 
 - Implemented annotation sharing: Shift-click any annotation to share it in the chat. Of course, only StR users will be able to import it.
 - Added account-level map annotations: There is now a checkbox under map annotations to make them visible across all characters.
-- Overview clusters are now interactive, and map pins will now cluster too: After thinking about it, I didn't see any reason not to make this behavior general.
+- Improved clustering: overview clusters are now interactive, map pins will now also cluster, and cluster tooltips have more predictable ordering.
 - Improved projections of annotations inside capital cities and battlegrounds: Both now project into their zone instead of directly on Azeroth. In practice, it means a quest inside Stormwind will start appearing in Elwynn Forest too, on top of the Stormwind area.
 
 ## 1.3.0
