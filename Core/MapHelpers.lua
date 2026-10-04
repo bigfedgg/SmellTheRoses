@@ -1,13 +1,5 @@
 local _, STR = ...
-
--- These maps are disallowed in annotations.
--- NOTE: They can eventually have projection overrides.
-local disallowedMaps = {
-    [1459] = true, -- Alterac Valley
-    [1460] = true, -- Warsong Gulch
-    [1461] = true, -- Arathi Basin
-    [2524] = true, -- Darkspear Islands
-}
+local Local = {}
 
 -- These maps have areas that cannot be annotated.
 -- Key = Map with disallowed areas.
@@ -19,9 +11,17 @@ local mapsWithBoundsChecks = {
 }
 
 local projectionOverrides = {
-    [2521] = {
-        [947] = {0.08, 0.66}, -- Zephras Isle -> West of Feralas
-    },
+    [1453] = {parentMapID = 1429, x = 0.3375, y = 0.5246}, -- Stormwind -> Elwynn Forest
+    [1454] = {parentMapID = 1411, x = 0.4555, y = 0.1210}, -- Orgrimmar -> Durotar
+    [1455] = {parentMapID = 1426, x = 0.5353, y = 0.3484}, -- Ironforge -> Dun Morogh
+    [1456] = {parentMapID = 1412, x = 0.3981, y = 0.3589}, -- Thunder Bluff -> Mulgore
+    [1457] = {parentMapID = 1438, x = 0.3064, y = 0.5538}, -- Darnassus -> Teldrassil
+    [1458] = {parentMapID = 1420, x = 0.6191, y = 0.6599}, -- Undercity -> Tirisfal Glades
+    [1459] = {parentMapID = 1424, x = 0.3884, y = 0.1418}, -- Alterac Valley -> Hillsbrad (Entrance)
+    [1460] = {parentMapID = 1413, x = 0.4649, y = 0.0856}, -- Warsong Gulch -> Barrens (Entrance)
+    [1461] = {parentMapID = 1417, x = 0.4626, y = 0.4400}, -- Arathi Basin -> Arathi Highlands (Entrance)
+    [2521] = {parentMapID = 1414, x = 0.3243, y = 0.7223}, -- Zephras Isle -> West of Feralas
+    [2524] = {parentMapID = 1413, x = 0.6340, y = 0.5860}, -- Darkspear Islands -> Northwatch Hold
 }
 
 function STR.ProjectAnnotations(annotations, targetMapID)
@@ -42,14 +42,17 @@ function STR.ProjectAnnotations(annotations, targetMapID)
 end
 
 function STR.ProjectMapPosition(sourceMapID, targetMapID, x, y)
+    if sourceMapID == targetMapID then
+        return x, y
+    end
+
     if not tContains(STR.GetMapAncestors(sourceMapID), targetMapID) then
         return
     end
 
-    local sourceOverrides = projectionOverrides[sourceMapID]
-    if sourceOverrides and sourceOverrides[targetMapID] then
-        local position = sourceOverrides[targetMapID]
-        return position[1], position[2]
+    local override = projectionOverrides[sourceMapID]
+    if override then
+        return STR.ProjectMapPosition(override.parentMapID, targetMapID, override.x, override.y)
     end
 
     local minX, maxX, minY, maxY = C_Map.GetMapRectOnMap(sourceMapID, targetMapID)
@@ -58,27 +61,21 @@ end
 
 function STR.GetMapAncestors(mapID)
     local ancestors = {}
-    mapID = C_Map.GetMapInfo(mapID).parentMapID
+    mapID = Local.GetParentMapID(mapID)
 
     while mapID ~= 0 do
         if C_Map.MapHasArt(mapID) then
             table.insert(ancestors, mapID)
         end
-        mapID = C_Map.GetMapInfo(mapID).parentMapID
+        mapID = Local.GetParentMapID(mapID)
     end
 
     return ancestors
 end
 
 function STR.CanAnnotateMapPosition(mapID, x, y)
-    -- NOTE: Some maps cannot be annotated because they don't work well with
-    -- multi-map annotations (I can't project them into an ancestor). Mainly
-    -- BGs and some out of bound areas in Eastern Kingdoms and Kalimdor.
-
-    if disallowedMaps[mapID] then
-        return false
-    end
-
+    -- NOTE: Some areas cannot be annotated because they don't work well with
+    -- multi-map annotations (I can't project them into an ancestor).
     local boundsCheckMapID = mapsWithBoundsChecks[mapID]
     if boundsCheckMapID then
         -- NOTE: This could reuse ProjectMapPosition and move the [0,1] check there.
@@ -179,4 +176,9 @@ function STR.ClusterPositions(positions)
         end
     end
     return clusters
+end
+
+function Local.GetParentMapID(mapID)
+    local override = projectionOverrides[mapID]
+    return override and override.parentMapID or C_Map.GetMapInfo(mapID).parentMapID
 end

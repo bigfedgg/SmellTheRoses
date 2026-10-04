@@ -1,10 +1,10 @@
 # TODO
 
-- Fix: Make Zephras project in Kalimdor near Feralas instead of Azeroth
-- Fix: Make capital cities project on their zone instead of Azeroth
 - Fix: Add glow to pin and quest in journal when hovering over annotations
+- Fix: Separate and order annotations in tooltips (ordered quests then maps)
 - Feature: Allow moving annotations and clusters in edit mode (Right-click)
 - Feature: Allow changing the icon and tint of an annotation
+- Feature: Show annotations in overlapping/neighboring maps
 - Immersion: Add an option to lock the minimap to the lowest zoom
 - Immersion: Add an option to lock annotation sharing to nearby players or mail
 - Support: Support more languages
