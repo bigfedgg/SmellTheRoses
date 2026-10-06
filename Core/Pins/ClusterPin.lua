@@ -28,6 +28,7 @@ function STRClusterPinMixin:OnAcquired(members, x, y)
     self.members = members
     self.Count:SetText(#members)
     self:SetPosition(x, y)
+    self:UpdateQuestHighlight(POIButtonHighlightManager:GetQuestID())
 end
 
 function STRClusterPinMixin:OnReleased()
@@ -35,6 +36,20 @@ function STRClusterPinMixin:OnReleased()
     self:OnMouseLeave()
     self.members = nil
     MapCanvasPinMixin.OnReleased(self)
+end
+
+function STRClusterPinMixin:UpdateQuestHighlight(questID)
+    for _, annotation in ipairs(self.members) do
+        if questID and annotation.questID == questID then
+            self.HighlightTexture:Show()
+            self.LinkGlow:Show()
+            return
+        end
+    end
+    if not self:IsMouseOver() then
+        self.HighlightTexture:Hide()
+    end
+    self.LinkGlow:Hide()
 end
 
 function STRClusterPinMixin:OnClick(button)
@@ -46,11 +61,13 @@ end
 
 function STRClusterPinMixin:OnMouseEnter()
     self.HighlightTexture:Show()
+    self.LinkGlow:Show()
     STR.GetMapController():OpenTooltipForCluster(self)
 end
 
 function STRClusterPinMixin:OnMouseLeave()
     self.HighlightTexture:Hide()
+    self.LinkGlow:Hide()
     STR.GetMapController():CloseTooltip(self)
 end
 

@@ -183,6 +183,8 @@ function STRMapController:OnAdded(map)
 
     map:RegisterCallback("SetFocusedQuestID", self.OnFocusedQuestChanged, self)
     map:RegisterCallback("ClearFocusedQuestID", self.OnFocusedQuestCleared, self)
+    EventRegistry:RegisterCallback("SetHighlightedQuestPOI", self.OnHighlightedQuestChanged, self)
+    EventRegistry:RegisterCallback("ClearHighlightedQuestPOI", self.OnHighlightedQuestChanged, self)
 end
 
 function STRMapController:OnRemoved(map)
@@ -190,6 +192,8 @@ function STRMapController:OnRemoved(map)
 
     map:UnregisterCallback("SetFocusedQuestID", self)
     map:UnregisterCallback("ClearFocusedQuestID", self)
+    EventRegistry:UnregisterCallback("SetHighlightedQuestPOI", self)
+    EventRegistry:UnregisterCallback("ClearHighlightedQuestPOI", self)
 
     MapCanvasDataProviderMixin.OnRemoved(self, map)
 end
@@ -222,6 +226,31 @@ end
 function STRMapController:OnFocusedQuestCleared()
     self.focusedQuestID = nil
     self:RefreshAllData()
+end
+
+function STRMapController:OnHighlightedQuestChanged()
+    local highlightedQuestID = POIButtonHighlightManager:GetQuestID()
+    local map = self:GetMap()
+
+    for _, template in ipairs({
+        "STRMapAnnotationPinTemplate",
+        "STRDirectClusterPinTemplate",
+        "STROverviewClusterPinTemplate"
+    }) do
+        for pin in map:EnumeratePinsByTemplate(template) do
+            pin:UpdateQuestHighlight(highlightedQuestID)
+        end
+    end
+
+    for button in self.clusterPopup.buttons:EnumerateActive() do
+        button:UpdateQuestHighlight(highlightedQuestID)
+    end
+
+    for button in QuestScrollFrame.titleFramePool:EnumerateActive() do
+        if button.STRAnnotationIndicator then
+            button.STRAnnotationIndicator.HighlightTexture:SetShown(button.questID == highlightedQuestID)
+        end
+    end
 end
 
 function STRMapController:RemoveAllData()

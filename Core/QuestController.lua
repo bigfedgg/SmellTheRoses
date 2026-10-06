@@ -52,7 +52,9 @@ function STR.UpdateQuestIndicatorsInJournal()
             button.STRAnnotationIndicator:SetPoint("TOPLEFT", button, "TOPLEFT", 6, -4)
         end
         if button.STRAnnotationIndicator then
+            local isHighlighted = button.questID == POIButtonHighlightManager:GetQuestID()
             button.STRAnnotationIndicator:SetShown(showIndicator)
+            button.STRAnnotationIndicator.HighlightTexture:SetShown(isHighlighted)
         end
     end
 end
@@ -88,6 +90,12 @@ function STR.CreateQuestIndicator(parent)
     local icon = indicator:CreateTexture(nil, "ARTWORK")
     icon:SetAtlas("Quest-In-Progress-Icon-yellow", true)
     icon:SetPoint("CENTER")
+
+    indicator.HighlightTexture = indicator:CreateTexture(nil, "OVERLAY")
+    indicator.HighlightTexture:SetAtlas("UI-QuestPoi-InnerGlow", true)
+    indicator.HighlightTexture:SetBlendMode("ADD")
+    indicator.HighlightTexture:SetPoint("CENTER")
+    indicator.HighlightTexture:Hide()
 
     return indicator
 end

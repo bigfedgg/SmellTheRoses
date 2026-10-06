@@ -15,6 +15,17 @@
             </Anchors>
         </PushedTexture>
         <Layers>
+            <Layer level="BACKGROUND" textureSubLevel="-1">
+                <Texture parentKey="LinkGlow"
+                         atlas="ui-questpoi-outerglow"
+                         alphaMode="ADD"
+                         hidden="true">
+                    <Size x="75" y="75"/>
+                    <Anchors>
+                        <Anchor point="CENTER"/>
+                    </Anchors>
+                </Texture>
+            </Layer>
             <Layer level="ARTWORK" textureSubLevel="1">
                 <Texture parentKey="GlobalFill"
                          atlas="UI-QuestPoi-QuestNumber-SuperTracked"

@@ -16,8 +16,8 @@ function STR.CreateClusterPopup()
     frame:CreateShadow()
     frame:CreateCloseButton()
     frame.buttons = CreateFramePool("Button", frame, "STRClusterAnnotationPinTemplate", function(pool, button)
-        button:ClearAnnotation()
         Pool_HideAndClearAnchors(pool, button)
+        button:ClearAnnotation()
     end)
     return frame
 end

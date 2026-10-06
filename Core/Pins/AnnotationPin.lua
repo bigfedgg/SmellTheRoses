@@ -14,12 +14,22 @@ function STRAnnotationButtonMixin:SetAnnotation(annotation)
     self.Display:SetIconShown(true)
     self.Display:SetAtlas(nil, nil, annotationIcons[annotation.icon])
     self.GlobalFill:SetShown(annotation.isGlobal or false)
+    self:UpdateQuestHighlight(POIButtonHighlightManager:GetQuestID())
 end
 
 function STRAnnotationButtonMixin:ClearAnnotation()
     STR.GetMapController():CloseNoteEditor(self)
+    STR.GetMapController():CloseTooltip(self)
     self.annotation = nil
-    self:OnMouseLeave()
+end
+
+function STRAnnotationButtonMixin:GetQuestID()
+    return self.annotation.questID
+end
+
+function STRAnnotationButtonMixin:UpdateQuestHighlight(questID)
+    self:EvaluateManagedHighlight()
+    self.LinkGlow:SetShown(questID ~= nil and self:GetQuestID() == questID)
 end
 
 function STRAnnotationButtonMixin:OnClick(button)
@@ -52,11 +62,25 @@ end
 
 function STRAnnotationButtonMixin:OnMouseEnter()
     self.HighlightTexture:Show()
+    self.LinkGlow:Show()
     STR.GetMapController():OpenTooltipForAnnotation(self)
+
+    local questID = self:GetQuestID()
+    if questID then
+        POIButtonHighlightManager:SetHighlight(questID)
+        EventRegistry:TriggerEvent("MapCanvas.QuestPin.OnEnter", self, questID)
+    end
 end
 
 function STRAnnotationButtonMixin:OnMouseLeave()
+    local questID = POIButtonHighlightManager:GetQuestID()
+    if questID then
+        POIButtonHighlightManager:ClearHighlight()
+        EventRegistry:TriggerEvent("MapCanvas.QuestPin.OnLeave", questID)
+    end
+
     self.HighlightTexture:Hide()
+    self.LinkGlow:Hide()
     STR.GetMapController():CloseTooltip(self)
 end
 
