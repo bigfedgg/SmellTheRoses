@@ -91,6 +91,12 @@ STRMapAnnotationPinMixin = CreateFromMixins(MapCanvasPinMixin, STRAnnotationButt
 function STRMapAnnotationPinMixin:OnLoad()
     self:UseFrameLevelType("PIN_FRAME_LEVEL_TOPMOST")
     self:SetScalingLimits(1, 1, 1)
+    self:SetNumLoops(2)
+    self.Expand:SetScale(0.65)
+end
+
+function STRMapAnnotationPinMixin:Clear()
+    self.Expand:SetAlpha(0)
 end
 
 function STRMapAnnotationPinMixin:OnAcquired(annotation, x, y)
@@ -99,6 +105,7 @@ function STRMapAnnotationPinMixin:OnAcquired(annotation, x, y)
 end
 
 function STRMapAnnotationPinMixin:OnReleased()
+    self:Stop()
     self:ClearAnnotation()
     MapCanvasPinMixin.OnReleased(self)
 end

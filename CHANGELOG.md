@@ -1,6 +1,6 @@
 ## 1.5.0
 
-- Improved UI effects: Glows are now properly applied on hover, similar to what Blizzard does for the native quest objectives.
+- Improved UI effects: Glows and pings are now properly applied, similar to what Blizzard does for the native quest objectives.
 
 ## 1.4.0
 

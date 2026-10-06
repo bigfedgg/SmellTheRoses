@@ -91,6 +91,18 @@ function STRMapController:DeleteAnnotation(annotation)
     self:RefreshAllData()
 end
 
+function STRMapController:PingAnnotation(annotation)
+    local map = self:GetMap()
+    for pin in map:EnumeratePinsByTemplate("STRMapAnnotationPinTemplate") do
+        if pin.annotation == annotation then
+            local x, y = pin:GetPosition()
+            pin:Stop()
+            pin:PlayAt(x, y)
+            return
+        end
+    end
+end
+
 function STRMapController:OpenNoteEditor(pin)
     self.noteEditor:Open(pin)
 end
@@ -129,6 +141,16 @@ function STRMapController:OpenMapForQuest(questID)
     local map = self:GetMap()
     map:SetMapID(mapID)
     map:ResetZoom()
+end
+
+function STRMapController:PingQuest(questID)
+    for pin in self:GetMap():EnumeratePinsByTemplate("STRMapAnnotationPinTemplate") do
+        if pin:GetQuestID() == questID then
+            local x, y = pin:GetPosition()
+            pin:Stop()
+            pin:PlayAt(x, y)
+        end
+    end
 end
 
 function STRMapController:GetSmallestCommonMapForQuest(questID)
@@ -219,6 +241,10 @@ function STRMapController:OnCanvasSizeChanged()
 end
 
 function STRMapController:OnFocusedQuestChanged(questID)
+    if self.focusedQuestID == questID then
+        return
+    end
+
     self.focusedQuestID = questID
     self:RefreshAllData()
 end

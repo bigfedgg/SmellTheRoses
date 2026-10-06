@@ -64,9 +64,10 @@
     </Button>
 
     <Button name="STRMapAnnotationPinTemplate"
-            inherits="STRPinTemplate"
+            inherits="MapPinPingTemplate, STRPinTemplate"
             mixin="STRMapAnnotationPinMixin"
             virtual="true">
+        <Size x="20" y="20"/>
     </Button>
 
     <Button name="STRClusterAnnotationPinTemplate"

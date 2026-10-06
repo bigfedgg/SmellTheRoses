@@ -15,6 +15,7 @@ function STR.SetupQuestAnnotationDisplay()
             return
         end
         openMapForQuest(button.questID)
+        STR.GetMapController():PingQuest(button.questID)
     end)
     hooksecurefunc("QuestMapFrame_OpenToQuestDetails", function(questID)
         openMapForQuest(questID)

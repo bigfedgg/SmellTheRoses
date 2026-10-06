@@ -131,7 +131,10 @@ function Local.ReceiveAnnotation(annotation)
         return
     end
 
-    STR.GetMapController():OpenAnnotation(annotation)
+    local mapController = STR.GetMapController()
+    mapController:OpenAnnotation(annotation)
+    mapController:RefreshAllData()
+    mapController:PingAnnotation(annotation)
     ChatFrameUtil.DisplaySystemMessageInPrimary("The annotation has been added to your map.")
 end
 
