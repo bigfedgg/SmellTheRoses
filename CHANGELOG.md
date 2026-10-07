@@ -1,6 +1,7 @@
 ## 1.5.0
 
 - Improved UI effects: Glows and pings are now properly applied, similar to what Blizzard does for the native quest objectives.
+- Fixed a visual bug in the quest journal when using StR with Spoken.
 
 ## 1.4.0
 

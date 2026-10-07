@@ -48,15 +48,20 @@ function STR.UpdateQuestIndicatorsInJournal()
         local blizzardPin = QuestScrollFrame.Contents:FindButtonByQuestID(button.questID)
         local showIndicator = isAddonEnabled and hasAnnotations and not blizzardPin
 
-        if showIndicator and not button.STRAnnotationIndicator then
-            button.STRAnnotationIndicator = STR.CreateQuestIndicator(button)
+        if not button.STRAnnotationIndicator then
+            button.STRAnnotationIndicator = STR.CreateQuestIndicator(button:GetParent())
+            button.STRAnnotationIndicator:SetFrameLevel(button:GetFrameLevel() + 1)
             button.STRAnnotationIndicator:SetPoint("TOPLEFT", button, "TOPLEFT", 6, -4)
+            button:HookScript("OnHide", function(row)
+                row.STRAnnotationIndicator:Hide()
+            end)
         end
-        if button.STRAnnotationIndicator then
-            local isHighlighted = button.questID == POIButtonHighlightManager:GetQuestID()
-            button.STRAnnotationIndicator:SetShown(showIndicator)
-            button.STRAnnotationIndicator.HighlightTexture:SetShown(isHighlighted)
-        end
+        local indicator = button.STRAnnotationIndicator
+        local isHighlighted = button.questID == POIButtonHighlightManager:GetQuestID()
+        indicator.questID = button.questID
+        indicator:SetAlpha(showIndicator and 1 or 0)
+        indicator:Show()
+        indicator.HighlightTexture:SetShown(isHighlighted)
     end
 end
 
@@ -81,8 +86,10 @@ function STR.UpdateQuestIndicatorsInTracker()
 end
 
 function STR.CreateQuestIndicator(parent)
-    local indicator = CreateFrame("Frame", nil, parent)
+    local indicator = CreateFrame("Button", nil, parent)
     indicator:SetSize(20, 20)
+    indicator:EnableMouse(false)
+    SmartNavigation_MarkFrameIgnored(indicator)
 
     local background = indicator:CreateTexture(nil, "BACKGROUND")
     background:SetAtlas("UI-QuestPoi-QuestNumber", true)

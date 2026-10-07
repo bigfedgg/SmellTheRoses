@@ -1,6 +1,5 @@
 # TODO
 
-- Fix: Better integration with Spoken
 - Feature: Allow moving annotations and clusters in edit mode (Right-click)
 - Feature: Allow changing the icon and tint of an annotation
 - Feature: Show annotations in overlapping/neighboring maps
