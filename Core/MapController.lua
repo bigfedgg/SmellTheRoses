@@ -1,29 +1,32 @@
 local _, STR = ...
+local Local = {}
+
+local questPinTemplate = "STRQuestAnnotationPinTemplate"
+local mapPinTemplate = "STRMapAnnotationPinTemplate"
+local pingTemplate = "STRAnnotationPingTemplate"
+
+local hoveredQuestID
 
 ---@class STRMapController: MapCanvasDataProviderMixin
----@field focusedQuestID number?
 local STRMapController = CreateFromMixins(MapCanvasDataProviderMixin)
 
-function STR.GetMapController()
-    return STRMapController
-end
+STRMapController.poiQuantizer = CreateFromMixins(WorldMapPOIQuantizerMixin)
+STRMapController.poiQuantizer.size = 75
+STRMapController.poiQuantizer:OnLoad(75, 75)
+
+STR.MapController = STRMapController
 
 function STR.SetupMap()
-    -- Create reusable components: pin tooltip, note editor, cluster popup
-    STRMapController.pinTooltip = STR.CreatePinTooltip()
-    STRMapController.noteEditor = STR.CreateNoteEditor()
-    STRMapController.clusterPopup = STR.CreateClusterPopup()
-
     -- Hook the map controller to the WorldMapFrame.
     WorldMapFrame:AddDataProvider(STRMapController)
-    WorldMapFrame:AddCanvasClickHandler(function(canvas, button, x, y)
-        return STRMapController:OnClick(canvas, button, x, y)
+    WorldMapFrame:AddCanvasClickHandler(function(_, button, x, y)
+        return STRMapController:OnCanvasClick(button, x, y)
     end)
 
     -- Setup map overview toggle.
     Menu.ModifyMenu("MENU_WORLD_MAP_TRACKING", function(_, rootDescription)
         local checkbox = rootDescription:CreateCheckbox(
-                "Annotation Overview",
+                STR.L["MAP_FILTER_OVERVIEW_LABEL"],
                 function()
                     return STR.Data.Options.showOverview
                 end,
@@ -34,254 +37,266 @@ function STR.SetupMap()
         checkbox:SetTooltip(
                 function(tooltip)
                     GameTooltip_SetTitle(tooltip, "Smell the Roses")
-                    GameTooltip_AddNormalLine(tooltip, "Show annotations in parent maps.", true)
+                    GameTooltip_AddNormalLine(tooltip, STR.L["MAP_FILTER_OVERVIEW_TOOLTIP"], true)
                 end)
     end)
 end
 
 function STRMapController:RefreshAllData()
-    self:RemoveAllData()
+    STR.CloseNoteEditor()
 
-    if not STR.IsAddonEnabled() then
-        return
-    end
+    self:RemoveAllData()
 
     local map = self:GetMap()
     local mapID = map:GetMapID()
-
-    local annotations = STR.SelectAnnotationsToDisplay(mapID, self.focusedQuestID)
-    local positions = STR.ProjectAnnotations(annotations, mapID)
-    local layout = STR.BuildPinLayout(positions, mapID, self.focusedQuestID)
-
-    for _, position in ipairs(layout.annotationPins) do
-        map:AcquirePin("STRMapAnnotationPinTemplate", position.annotation, position.x, position.y)
-    end
-    for _, cluster in ipairs(layout.directClusters) do
-        map:AcquirePin("STRDirectClusterPinTemplate", cluster.members, cluster.x, cluster.y)
-    end
-    for _, cluster in ipairs(layout.overviewClusters) do
-        map:AcquirePin("STROverviewClusterPinTemplate", cluster.members, cluster.x, cluster.y)
-    end
-end
-
-function STRMapController:OpenAnnotation(annotation)
-    self.clusterPopup:Close()
-    OpenWorldMap()
-
-    if annotation.questID and C_QuestLog.IsOnQuest(annotation.questID) then
-        STR.OpenQuestFromPin(annotation.questID)
-    else
-        QuestMapFrame_CloseQuestDetails()
-    end
-
-    local map = self:GetMap()
-    if map:GetMapID() ~= annotation.mapID then
-        map:SetMapID(annotation.mapID)
-    end
-    map:ResetZoom()
-end
-
-function STRMapController:DeleteAnnotation(annotation)
-    if annotation.questID then
-        STR.RemoveQuestAnnotation(annotation)
-    else
-        STR.RemoveMapAnnotation(annotation)
-    end
-
-    self:RefreshAllData()
-end
-
-function STRMapController:PingAnnotation(annotation)
-    local map = self:GetMap()
-    for pin in map:EnumeratePinsByTemplate("STRMapAnnotationPinTemplate") do
-        if pin.annotation == annotation then
-            local x, y = pin:GetPosition()
-            pin:Stop()
-            pin:PlayAt(x, y)
-            return
-        end
-    end
-end
-
-function STRMapController:OpenNoteEditor(pin)
-    self.noteEditor:Open(pin)
-end
-
-function STRMapController:CloseNoteEditor(pin)
-    self.noteEditor:CloseForPin(pin)
-end
-
-function STRMapController:OpenTooltipForAnnotation(pin)
-    self.pinTooltip:OpenForAnnotation(pin)
-end
-
-function STRMapController:OpenTooltipForCluster(cluster)
-    self.pinTooltip:OpenForCluster(cluster)
-end
-
-function STRMapController:CloseTooltip(pin)
-    self.pinTooltip:Close(pin)
-end
-
-function STRMapController:ToggleCluster(cluster)
-    self.clusterPopup:Toggle(cluster)
-end
-
-function STRMapController:CloseCluster(cluster)
-    self.clusterPopup:CloseForCluster(cluster)
-end
-
-function STRMapController:OpenMapForQuest(questID)
-    if not STR.IsAddonEnabled() then
+    if not mapID or not STR.IsAddonEnabled() then
         return
     end
 
-    local mapID = self:GetSmallestCommonMapForQuest(questID)
+    local pins = {}
+    local focusedQuestID = STR.GetFocusedQuestID()
+    for _, annotation in ipairs(STR.GetAllAnnotations()) do
+        local x, y = Local.GetAnnotationPositionOnMap(annotation, mapID, focusedQuestID)
+        if x then
+            local template = annotation.questID and questPinTemplate or mapPinTemplate
+            table.insert(pins, map:AcquirePin(template, annotation, x, y))
+        end
+    end
 
+    self.poiQuantizer:ClearAndQuantize(pins)
+    for _, pin in ipairs(pins) do
+        pin:SetPosition(pin.quantizedX or pin.normalizedX, pin.quantizedY or pin.normalizedY)
+    end
+
+    self:UpdatePings()
+end
+
+function STRMapController:RemoveAllData()
     local map = self:GetMap()
-    map:SetMapID(mapID)
-    map:ResetZoom()
+    map:RemoveAllPinsByTemplate(questPinTemplate)
+    map:RemoveAllPinsByTemplate(mapPinTemplate)
 end
 
-function STRMapController:PingQuest(questID)
-    for pin in self:GetMap():EnumeratePinsByTemplate("STRMapAnnotationPinTemplate") do
-        if pin:GetQuestID() == questID then
-            local x, y = pin:GetPosition()
-            pin:Stop()
-            pin:PlayAt(x, y)
+function STRMapController:OpenAnnotation(annotation)
+    local questID = annotation.questID
+    local isFocused = questID and questID == STR.GetFocusedQuestID()
+    if questID and not isFocused and C_QuestLog.IsOnQuest(questID) then
+        if not QuestUtils_IsQuestWatched(questID) then
+            C_QuestLog.AddQuestWatch(questID)
+        end
+        C_SuperTrack.SetSuperTrackedQuestID(questID)
+    end
+
+    C_Map.OpenWorldMap(annotation.mapID)
+
+    if not isFocused then
+        STR.CloseStickyQuestDetails()
+    end
+end
+
+function STRMapController:DeleteAnnotation(annotation)
+    STR.RemoveAnnotation(annotation)
+    self:RefreshAllData()
+    STR.UpdateQuestIndicators()
+end
+
+function STRMapController:ShowQuestAnnotations(questID)
+    local annotations = STR.GetQuestAnnotations(questID)
+    if not STR.IsAddonEnabled() or #annotations == 0 then
+        return
+    end
+
+    C_Map.OpenWorldMap(STR.Utils.GetSmallestMapContaining(annotations))
+    self:PingAnnotations(annotations)
+end
+
+function STRMapController:PingAnnotations(annotations)
+    local map = self:GetMap()
+    map:RemoveAllPinsByTemplate(pingTemplate)
+    for _, annotation in ipairs(annotations) do
+        local pin = self:GetAnnotationPin(annotation)
+        if pin then
+            local ping = map:AcquirePin(pingTemplate)
+            ping:UseFrameLevelType("PIN_FRAME_LEVEL_QUEST_PING")
+            ping:SetNumLoops(2)
+            ping:SetID("annotation", annotation)
+            ping:PlayAt(pin:GetPosition())
         end
     end
 end
 
-function STRMapController:GetSmallestCommonMapForQuest(questID)
-    local questMapIDs = STR.Data.QuestAnnotations[questID]
-    local someQuestMapID = next(questMapIDs)
-    local someAncestorMapIDs = STR.GetMapAncestors(someQuestMapID)
-    table.insert(someAncestorMapIDs, 1, someQuestMapID)
-
-    local commonAncestorIndex = 1
-    for mapID in pairs(questMapIDs) do
-        local otherAncestorMapIDs = STR.GetMapAncestors(mapID)
-        while someAncestorMapIDs[commonAncestorIndex] do
-            local candidateMapID = someAncestorMapIDs[commonAncestorIndex]
-            if candidateMapID == mapID or tContains(otherAncestorMapIDs, candidateMapID) then
-                break
+function STRMapController:UpdatePings()
+    for ping in self:GetMap():EnumeratePinsByTemplate(pingTemplate) do
+        if ping:IsActive() then
+            local _, annotation = ping:GetID()
+            local pin = self:GetAnnotationPin(annotation)
+            if pin then
+                ping:PlayAt(pin:GetPosition())
+            else
+                ping:Stop()
             end
-            commonAncestorIndex = commonAncestorIndex + 1
         end
     end
-
-    return someAncestorMapIDs[commonAncestorIndex]
 end
 
-function STRMapController:OnClick(canvas, button, x, y)
+function STRMapController:GetAnnotationPin(annotation)
+    for _, template in ipairs({ questPinTemplate, mapPinTemplate }) do
+        for pin in self:GetMap():EnumeratePinsByTemplate(template) do
+            if pin.annotation == annotation then
+                return pin
+            end
+        end
+    end
+end
+
+function STRMapController:OnCanvasClick(button, x, y)
     if not STR.IsAddonEnabled() or button ~= "LeftButton" or not IsAltKeyDown() then
         return false
     end
 
-    local openedMapID, error = canvas:GetMapID(), nil
-    if self.focusedQuestID then
-        error = STR.AddQuestAnnotation(self.focusedQuestID, openedMapID, x, y)
-    else
-        error = STR.AddMapAnnotation(openedMapID, x, y)
-    end
+    local mapID = self:GetMap():GetMapID()
+    local mapInfo = C_Map.GetMapInfo(mapID)
+    local questID = STR.GetFocusedQuestID()
+    local title = questID and C_QuestLog.GetTitleForQuestID(questID) or mapInfo.name
+    local annotation = { questID = questID, mapID = mapID, x = x, y = y, title = title }
 
-    if error == "invalid" then
-        ChatFrameUtil.DisplaySystemMessageInPrimary("The annotation is not valid.")
-        return true
-    elseif error == "duplicate" then
-        ChatFrameUtil.DisplaySystemMessageInPrimary("The annotation already exists.")
+    local errorKey
+    if questID and not MapUtil.ShouldMapTypeShowQuests(mapInfo.mapType) then
+        -- Quest annotations are restricted to maps that can actually show quest objectives.
+        errorKey = "ERROR_INVALID_QUEST_MAP"
+    elseif not STR.Utils.CanAnnotateMapPosition(annotation) then
+        -- Some map positions can't be annotated. See CanAnnotateMapPosition.
+        errorKey = "ERROR_INVALID_ANNOTATION"
+    else
+        errorKey = STR.AddAnnotation(annotation)
+    end
+    if errorKey then
+        ChatFrameUtil.DisplaySystemMessageInPrimary(STR.L[errorKey])
         return true
     end
 
     self:RefreshAllData()
+    STR.UpdateQuestIndicators()
     return true
 end
 
 function STRMapController:OnAdded(map)
     MapCanvasDataProviderMixin.OnAdded(self, map)
 
-    self.focusedQuestID = QuestMapFrame.DetailsFrame.questID
-
-    map:RegisterCallback("SetFocusedQuestID", self.OnFocusedQuestChanged, self)
-    map:RegisterCallback("ClearFocusedQuestID", self.OnFocusedQuestCleared, self)
+    map:RegisterCallback("SetFocusedQuestID", self.RefreshAllData, self)
+    map:RegisterCallback("ClearFocusedQuestID", self.RefreshAllData, self)
     EventRegistry:RegisterCallback("SetHighlightedQuestPOI", self.OnHighlightedQuestChanged, self)
     EventRegistry:RegisterCallback("ClearHighlightedQuestPOI", self.OnHighlightedQuestChanged, self)
+    EventRegistry:RegisterCallback("Supertracking.OnChanged", self.RefreshAllData, self)
 end
 
 function STRMapController:OnRemoved(map)
-    self.focusedQuestID = nil
-
     map:UnregisterCallback("SetFocusedQuestID", self)
     map:UnregisterCallback("ClearFocusedQuestID", self)
     EventRegistry:UnregisterCallback("SetHighlightedQuestPOI", self)
     EventRegistry:UnregisterCallback("ClearHighlightedQuestPOI", self)
+    EventRegistry:UnregisterCallback("Supertracking.OnChanged", self)
 
     MapCanvasDataProviderMixin.OnRemoved(self, map)
 end
 
+function STRMapController:OnShow()
+    self:RegisterEvent("QUEST_LOG_UPDATE")
+    self:RegisterEvent("CVAR_UPDATE")
+end
+
 function STRMapController:OnHide()
-    self.clusterPopup:Close()
-    self.pinTooltip:CloseAll()
-    self.noteEditor:Close()
+    self:UnregisterEvent("QUEST_LOG_UPDATE")
+    self:UnregisterEvent("CVAR_UPDATE")
+    STR.PinTooltip:Close()
 end
 
--- NOTE: Not closing the cluster when the canvas changes causes some weird behaviour.
--- Mostly the expanded cluster going outside of the map and clipping other elements.
-function STRMapController:OnCanvasPanChanged()
-    self.clusterPopup:Close()
-end
-
-function STRMapController:OnCanvasScaleChanged()
-    self.clusterPopup:Close()
+function STRMapController:OnEvent(event, cvar)
+    if event == "QUEST_LOG_UPDATE" or (event == "CVAR_UPDATE" and cvar == "questPOI") then
+        self:RefreshAllData()
+    end
 end
 
 function STRMapController:OnCanvasSizeChanged()
-    self.clusterPopup:Close()
+    local map = self:GetMap()
+    local ratio = map:DenormalizeHorizontalSize(1.0) / map:DenormalizeVerticalSize(1.0)
+    self.poiQuantizer:Resize(math.ceil(self.poiQuantizer.size * ratio), self.poiQuantizer.size)
 end
 
-function STRMapController:OnFocusedQuestChanged(questID)
-    if self.focusedQuestID == questID then
-        return
-    end
-
-    self.focusedQuestID = questID
-    self:RefreshAllData()
+function STRMapController:SetHoveredQuest(questID)
+    hoveredQuestID = questID
+    self:OnHighlightedQuestChanged()
+    STR.UpdateQuestIndicators()
 end
 
-function STRMapController:OnFocusedQuestCleared()
-    self.focusedQuestID = nil
-    self:RefreshAllData()
+function STRMapController:GetHoveredQuestID()
+    return hoveredQuestID
+end
+
+function STRMapController:GetHighlightedQuestID()
+    return hoveredQuestID or POIButtonHighlightManager:GetQuestID()
 end
 
 function STRMapController:OnHighlightedQuestChanged()
-    local highlightedQuestID = POIButtonHighlightManager:GetQuestID()
-    local map = self:GetMap()
-
-    for _, template in ipairs({
-        "STRMapAnnotationPinTemplate",
-        "STRDirectClusterPinTemplate",
-        "STROverviewClusterPinTemplate"
-    }) do
-        for pin in map:EnumeratePinsByTemplate(template) do
-            pin:UpdateQuestHighlight(highlightedQuestID)
-        end
-    end
-
-    for button in self.clusterPopup.buttons:EnumerateActive() do
-        button:UpdateQuestHighlight(highlightedQuestID)
-    end
-
-    for button in QuestScrollFrame.titleFramePool:EnumerateActive() do
-        if button.STRAnnotationIndicator then
-            button.STRAnnotationIndicator.HighlightTexture:SetShown(button.questID == highlightedQuestID)
-        end
+    for pin in self:GetMap():EnumeratePinsByTemplate(questPinTemplate) do
+        pin:UpdateHighlight()
     end
 end
 
-function STRMapController:RemoveAllData()
-    local map = self:GetMap()
-    map:RemoveAllPinsByTemplate("STRMapAnnotationPinTemplate")
-    map:RemoveAllPinsByTemplate("STRDirectClusterPinTemplate")
-    map:RemoveAllPinsByTemplate("STROverviewClusterPinTemplate")
+function Local.GetAnnotationPositionOnMap(annotation, mapID, focusedQuestID)
+    local questID = annotation.questID
+
+    -- If a quest is focused, only its own annotations are shown.
+    -- Focused quests have no limitations on which maps they show.
+    if focusedQuestID then
+        if questID ~= focusedQuestID then
+            return
+        end
+        return STR.Utils.GetPositionOnMap(annotation, mapID)
+    end
+
+    -- The map has to be able to show the annotation.
+    if not Local.CanShowAnnotationOnMap(annotation, mapID) then
+        return
+    end
+
+    if questID and C_QuestLog.IsOnQuest(questID) then
+        local questIsReadyToTurnIn = STR.Utils.IsQuestReadyToTurnIn(questID)
+
+        -- If a quest is not completed, turn-in annotations are hidden.
+        if annotation.isTurnIn and not questIsReadyToTurnIn then
+            return
+        end
+
+        -- If a quest is completed, only turn-in annotations are shown.
+        if not annotation.isTurnIn and questIsReadyToTurnIn then
+            return
+        end
+    end
+
+    return STR.Utils.GetPositionOnMap(annotation, mapID)
+end
+
+function Local.CanShowAnnotationOnMap(annotation, mapID)
+    local mapType = C_Map.GetMapInfo(mapID).mapType
+    local annotationMapType = C_Map.GetMapInfo(annotation.mapID).mapType
+
+    -- If the map is at least a zone, then it can show any annotation in a higher map type.
+    -- e.g. a zone map can show a zone or dungeon annotation.
+    if mapType >= Enum.UIMapType.Zone and annotationMapType >= mapType then
+        return true
+    end
+
+    -- Any map can show its own annotations.
+    if annotation.mapID == mapID then
+        return true
+    end
+
+    -- Continent maps can show super-tracked quest annotations.
+    if annotation.questID and annotation.questID == C_SuperTrack.GetSuperTrackedQuestID() and mapType == Enum.UIMapType.Continent then
+        return true
+    end
+
+    -- Map annotations are always shown if overview is enabled.
+    return not annotation.questID and STR.Data.Options.showOverview
 end

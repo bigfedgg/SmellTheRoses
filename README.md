@@ -13,27 +13,28 @@ StR is a minimal addon for World of Warcraft: Forever that helps you in your que
 
 ## Usage
 
-You just accepted a quest. It tells you to kill 10 Plainstriders to the South East. With StR, you open the quest in the quest journal, `Alt-Click` somewhere to the South East to add an annotation, then `Right-Click` the annotation to add a note: "10 Plainstriders". Now while questing you can hover over the annotation to see its content, click the annotation to open the quest, or click the quest to go to its annotations. An indicator will also appear in the quest journal and quest tracker to let you know you have it annotated, exactly like Blizzard's default quest objectives.
+You just accepted a quest. It tells you to kill 10 Murlocs to the South East. With StR, you open the quest in the quest journal, `Alt-Click` somewhere to the South East to add an annotation, then `Right-Click` the annotation to add a note: "Lookout for runners". Now while questing you can hover over the annotation to see its note and objectives. You can also click the quest in the journal at any point to go to your annotation.
 
 <p align="center">
-  <a href=".previews/1-map-with-quests.png" target="_blank"><img src=".previews/1-map-with-quests.png" alt="See your annotations with quest indicators in the journal" width="300"></a>
-  <a href=".previews/5-open-quest.png" target="_blank"><img src=".previews/5-open-quest.png" alt="Click on a quest to show only its annotations" width="300"></a>
+  <a href=".previews/1-map-with-quests.webp" target="_blank"><img src=".previews/1-map-with-quests.webp" alt="See your annotations in the journal" width="300"></a>
+  <a href=".previews/2-annotation-note.webp" target="_blank"><img src=".previews/2-annotation-note.webp" alt="Right-click an annotation to write a note" width="300"></a>
 </p>
 
-While killing the Plainstriders, you discover a cave with an Elite. You're not ready for it just yet, so you open your map and `Alt-Click` your position to add a map annotation. These are not linked to a quest and have their own pin icon.
+While killing the Murlocs, you discover a cave with an Elite. You're not ready for it just yet, so you open your map and `Alt-Click` your position to add a map annotation. These are not linked to a quest and have their own pin icon.
 
-Once done with the Plainstriders you go back to the quest-giver and turn-in the quest. If auto-deletion is enabled in the addon configuration (it's enabled by default), your quest annotations will be deleted after you turn in the quest. Your map annotation will be unaffected.
+Once done with the Murlocs you go back to the quest-giver and turn-in the quest. If auto-deletion is enabled in the addon configuration (it's enabled by default), your quest annotations will be deleted after you turn in the quest. Your map annotation will be unaffected.
 
 <p align="center">
-  <a href=".previews/2-cluster-hover.png" target="_blank"><img src=".previews/2-cluster-hover.png" alt="Hover over a cluster to peek at its quests" width="300"></a>
-  <a href=".previews/7-multi-map-annotations.png" target="_blank"><img src=".previews/7-multi-map-annotations.png" alt="Add multiple annotations on different maps to a quest" width="300"></a>
+  <a href=".previews/3-annotation-tooltip.webp" target="_blank"><img src=".previews/3-annotation-tooltip.webp" alt="Hover over an annotation to see its note and objectives" width="300"></a>
+  <a href=".previews/4-open-quest.webp" target="_blank"><img src=".previews/4-open-quest.webp" alt="Click on a quest to show only its annotations" width="300"></a>
+  <a href=".previews/5-multi-map-annotations.webp" target="_blank"><img src=".previews/5-multi-map-annotations.webp" alt="Add multiple annotations to a quest" width="300"></a>
 </p>
 
 > [!TIP]
-> - You can freely navigate and annotate the world map while a quest is open. This is useful when a quest has objectives in multiple maps, or if you want to mark the quest giver's location in addition to the objective. On top of that, clicking a quest with multi-map annotations will select the proper map level to show all the annotations at the same time.
-> - StR will cluster annotations in the same location to keep your map tidy. Click the cluster to expand it and interact with individual annotations.
-> - `Shift-Click` an annotation to share it in the chat. The receiver can just click the link to add the annotation to their map.
-> - To make a map annotation visible on all your characters, `Right-Click` it and check "Keep on all characters" below the note.
+> - You can freely navigate the map and add multiple annotations to a quest while it is open.
+> - You can `Right-Click` a quest annotation and mark it as a turn-in location. This is especially handy when you grab a quest in some random location in the middle of nowhere.
+> - You can `Right-Click` a map annotation and mark it as global to make it visible on all your characters.
+> - You can `Shift-Click` an annotation to share it in the chat. The receiver can just click the link to add the annotation to their map.
 
 ## Options
 
@@ -49,21 +50,17 @@ With this option enabled, quest annotations will be automatically deleted after 
 
 ### Disable with Blizzard objectives
 
-With this option enabled, the addon is effectively disabled when you enable the Quest Objectives filter in the world map. All annotations, clusters, and quest indicators are hidden, and creating annotations is disabled.
+With this option enabled, the addon is effectively disabled when you enable the Quest Objectives filter in the world map. All annotations are hidden, and creating annotations is disabled.
 
 - Where: AddOns configuration panel → Smell the Roses
 - Default: Disabled
 
 ### Show annotation overview
 
-With this option enabled, annotations will appear on their parent maps. So an annotation in Mulgore will also appear at the appropriate location if you've looking at the Kalimdor map or the World Map. To keep the parent maps readable, clustering is used if some annotations are too close to each other.
+With this option enabled, map annotations will also appear on their parent maps. So a map annotation in Mulgore will also appear at the appropriate location if you're looking at the Kalimdor map or the World Map.
 
 - Where: Map panel → Map Filter dropdown → Annotation Overview
 - Default: Enabled
-
-<p align="center">
-  <a href=".previews/6-annotation-overview.png" target="_blank"><img src=".previews/6-annotation-overview.png" alt="See annotation overviews in parent maps" width="300"></a>
-</p>
 
 > [!NOTE]
 > Zephras Isle annotations are projected into Kalimdor to the West of Feralas. This is roughly the location where the Skyborne originally struck a bargain with the elementals to help them escape to Skywall. It's pretty arbitrary, but I thought it was the most fitting.

@@ -1,7 +1,16 @@
 ## 1.5.0
 
-- Improved UI effects: Glows and pings are now properly applied, similar to what Blizzard does for the native quest objectives.
-- Fixed a visual bug in the quest journal when using StR with Spoken.
+This is probably the last update before launch. It changes a lot of behavior to make it as close to Blizzard as possible. It also fixes some taint issues that could break the UI when the addon was enabled. I've leveled with this version and found it to be very enjoyable and easy to use!
+
+- Implemented "Turn-in" annotations: Mark an annotation as "Turn-in" by editing it and toggling the "?" button. It will then stay hidden until you complete the quest. You can always show all annotations by clicking the quest in the journal.
+- Changed the global annotations checkbox into a button toggle similar to the quest annotation toggle described above. Just to keep the UI consistent.
+- Improved quest tooltips: They now display incomplete objectives and use the proper difficulty color for quest titles.
+- Removed expandable clusters: I really didn't like them! Instead, I now use the same technique Blizzard uses to separate close pins by slightly pushing them away from each other.
+- Simplified quest annotation display logic: Quest annotations can't be placed directly on continent maps or on the world map anymore. This is mainly to keep the same behavior as Blizzard quest objectives. Don't worry, this only applies to new quest annotations you add.
+- Improved annotation positioning: You will now see annotations from neighboring maps. For example, if you open the Westfall map, you will be able to see annotations in the west of Elwynn Forest as that part of the map is still visible to you.
+- Changed the "Annotation Overview" filter to only apply to map annotations: This is mainly to avoid having to deal with clustering as the higher we go in map levels, the closer pins get naturally.
+- Fixed a visual bug in the quest journal when using StR with Spoken. The play button doesn't overlap quest indicators anymore.
+- Fixed Lua errors that could result from tainting.
 
 ## 1.4.0
 

@@ -9,17 +9,17 @@
 ## X-Curse-Project-ID: 1714305
 ## X-Wago-ID: v63QQBGb
 
+Core\Messages.lua
+Core\Utils.lua
 Core\Data.lua
+Core\AnnotationPin.lua
+Core\PinTooltip.lua
+Core\PinTemplates.xml
 Core\EditorController.lua
 Core\EditorFrame.xml
-Core\Pins\AnnotationPin.lua
-Core\Pins\ClusterPin.lua
-Core\Pins\PinTooltip.lua
-Core\Pins\ClusterPopup.lua
-Core\Pins\PinTemplates.xml
-Core\MapHelpers.lua
 Core\MapController.lua
 Core\QuestController.lua
 Core\SharingController.lua
 Core\Settings.lua
+Core\SettingsFrame.xml
 Core\SmellTheRoses.lua

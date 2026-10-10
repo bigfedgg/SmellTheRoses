@@ -1,12 +1,114 @@
 local _, STR = ...
+local Local = {}
 
-function STR.SetupQuestAnnotationDisplay()
-    local function openMapForQuest(questID)
-        if STR.Data.QuestAnnotations[questID] then
-            STR.GetMapController():OpenMapForQuest(questID)
+-- NOTE: When the player opens a quest with the addon enabled, and navigates
+-- to a different map, we construct a "fake" quest panel and keep it open.
+-- The initial plan  was to use the default quest details and override some of
+-- its function to avoid map navigation but that was tainting the UI.
+local stickyQuestID
+local stickyReturnMapID
+local stickyDetailsButtons = {}
+local closingQuestID
+local closingReturnMapID
+
+function STR.SetupDeleteAnnotationsOnQuestTurnIn()
+    EventRegistry:RegisterFrameEventAndCallback("QUEST_TURNED_IN", function(_, questID)
+        if STR.Data.Options.deleteOnTurnIn then
+            STR.RemoveQuestAnnotations(questID)
         end
+    end, STR)
+end
+
+function STR.SetupMapNavigationWithOpenQuest()
+    local details = QuestMapFrame.DetailsFrame
+
+    hooksecurefunc(WorldMapFrame.ScrollContainer, "SetMapID", function()
+        closingQuestID, closingReturnMapID = details.questID, details.returnMapID
+    end)
+    hooksecurefunc(QuestMapFrame, "Refresh", function()
+        if closingQuestID and not details.questID and STR.IsAddonEnabled() then
+            stickyQuestID, stickyReturnMapID = closingQuestID, closingReturnMapID
+
+            QuestScrollFrame:Hide()
+            details:Show()
+            details.DestinationMapButton:Hide()
+            details.WaypointMapButton:Hide()
+
+            Local.UpdateStickyDetailsButtons()
+            STR.MapController:RefreshAllData()
+        end
+        closingQuestID, closingReturnMapID = nil, nil
+    end)
+    hooksecurefunc("QuestMapFrame_ShowQuestDetails", Local.ReleaseQuestDetails)
+    hooksecurefunc("QuestMapFrame_CloseQuestDetails", Local.ReleaseQuestDetails)
+
+    EventRegistry:RegisterFrameEventAndCallback("QUEST_REMOVED", function(_, questID)
+        if questID == stickyQuestID then
+            STR.CloseStickyQuestDetails()
+        end
+    end, Local)
+
+    Local.CreateStickyDetailsButton(details.BackFrame.BackButton, function()
+        PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON)
+        local returnMapID = stickyReturnMapID
+        STR.CloseStickyQuestDetails()
+        C_Map.OpenWorldMap(returnMapID)
+    end)
+    Local.CreateStickyDetailsButton(details.AbandonButton, function()
+        QuestMapQuestOptions_AbandonQuest(stickyQuestID)
+    end)
+    Local.CreateStickyDetailsButton(details.ShareButton, function()
+        QuestMapQuestOptions_ShareQuest(stickyQuestID)
+    end)
+    Local.CreateStickyDetailsButton(details.TrackButton, function()
+        PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON)
+        QuestMapQuestOptions_TrackQuest(stickyQuestID)
+    end)
+    hooksecurefunc("QuestMapFrame_UpdateQuestDetailsButtons", Local.UpdateStickyDetailsButtons)
+    Local.UpdateStickyDetailsButtons()
+end
+
+function STR.GetFocusedQuestID()
+    return QuestMapFrame_GetFocusedQuestID() or stickyQuestID
+end
+
+function STR.CloseStickyQuestDetails()
+    if stickyQuestID then
+        QuestMapFrame.DetailsFrame:Hide()
+        QuestScrollFrame:Show()
+        Local.ReleaseQuestDetails()
+    end
+end
+
+function Local.ReleaseQuestDetails()
+    if not stickyQuestID then
+        return
     end
 
+    stickyQuestID, stickyReturnMapID = nil, nil
+    Local.UpdateStickyDetailsButtons()
+    STR.MapController:RefreshAllData()
+end
+
+function Local.CreateStickyDetailsButton(blizzardButton, onClick)
+    local button = CreateFrame("Button", nil, blizzardButton:GetParent(), "UIPanelButtonTemplate")
+    button:SetAllPoints(blizzardButton)
+    button:SetFrameLevel(blizzardButton:GetFrameLevel() + 1)
+    button:SetScript("OnClick", onClick)
+    button.blizzardButton = blizzardButton
+    table.insert(stickyDetailsButtons, button)
+end
+
+function Local.UpdateStickyDetailsButtons()
+    for _, button in ipairs(stickyDetailsButtons) do
+        button:SetText(button.blizzardButton:GetText())
+        button:SetEnabled(button.blizzardButton:IsEnabled())
+        button:SetShown(stickyQuestID ~= nil)
+    end
+end
+
+function STR.SetupShowAnnotationsOnQuestOpen()
+    -- Setup clicking on the journal to show all quest annotations.
     hooksecurefunc("QuestMapLogTitleButton_OnClick", function(button, mouseButton)
         if mouseButton ~= "LeftButton" or IsShiftKeyDown() then
             return
@@ -14,170 +116,71 @@ function STR.SetupQuestAnnotationDisplay()
         if QuestMapFrame.DetailsFrame.questID ~= button.questID then
             return
         end
-        openMapForQuest(button.questID)
-        STR.GetMapController():PingQuest(button.questID)
+        STR.MapController:ShowQuestAnnotations(button.questID)
     end)
+
+    -- Setup clicking on the quest tracker to show all quest annotations.
     hooksecurefunc("QuestMapFrame_OpenToQuestDetails", function(questID)
-        openMapForQuest(questID)
+        STR.MapController:ShowQuestAnnotations(questID)
     end)
 end
 
-function STR.SetupQuestAnnotationIndicators()
-    hooksecurefunc("QuestLogQuests_Update", STR.UpdateQuestIndicatorsInJournal)
-    hooksecurefunc(QuestObjectiveTracker, "Update", STR.UpdateQuestIndicatorsInTracker)
-    hooksecurefunc(QuestObjectiveTracker, "OnFreeBlock", function(_, block)
-        if block.STRAnnotationIndicator then
-            block.STRAnnotationIndicator:Hide()
-        end
-    end)
-    hooksecurefunc(STR, "AddAnnotation", STR.UpdateQuestIndicators)
-    hooksecurefunc(STR, "RemoveAllQuestAnnotations", STR.UpdateQuestIndicators)
+function STR.SetupQuestIndicators()
+    hooksecurefunc("QuestLogQuests_Update", Local.UpdateJournalIndicators)
+    hooksecurefunc(QuestObjectiveTracker, "Update", Local.UpdateTrackerIndicators)
+    EventRegistry:RegisterCallback("SetHighlightedQuestPOI", Local.UpdateJournalIndicators, Local)
+    EventRegistry:RegisterCallback("ClearHighlightedQuestPOI", Local.UpdateJournalIndicators, Local)
 
     STR.UpdateQuestIndicators()
 end
 
 function STR.UpdateQuestIndicators()
-    STR.UpdateQuestIndicatorsInJournal()
-    STR.UpdateQuestIndicatorsInTracker()
+    Local.UpdateJournalIndicators()
+    Local.UpdateTrackerIndicators()
 end
 
-function STR.UpdateQuestIndicatorsInJournal()
+function Local.UpdateJournalIndicators()
     local isAddonEnabled = STR.IsAddonEnabled()
     for button in QuestScrollFrame.titleFramePool:EnumerateActive() do
-        local hasAnnotations = STR.Data.QuestAnnotations[button.questID] ~= nil
-        local blizzardPin = QuestScrollFrame.Contents:FindButtonByQuestID(button.questID)
-        local showIndicator = isAddonEnabled and hasAnnotations and not blizzardPin
-
-        if not button.STRAnnotationIndicator then
-            button.STRAnnotationIndicator = STR.CreateQuestIndicator(button:GetParent())
-            button.STRAnnotationIndicator:SetFrameLevel(button:GetFrameLevel() + 1)
-            button.STRAnnotationIndicator:SetPoint("TOPLEFT", button, "TOPLEFT", 6, -4)
+        if not button.STRIndicator then
+            button.STRIndicator = CreateFrame("Button", nil, button:GetParent(), "STRQuestIndicatorTemplate")
+            button.STRIndicator:SetFrameLevel(button:GetFrameLevel() + 1)
+            button.STRIndicator:SetPoint("TOPLEFT", button, "TOPLEFT", 6, -4)
             button:HookScript("OnHide", function(row)
-                row.STRAnnotationIndicator:Hide()
+                row.STRIndicator:Hide()
             end)
         end
-        local indicator = button.STRAnnotationIndicator
-        local isHighlighted = button.questID == POIButtonHighlightManager:GetQuestID()
-        indicator.questID = button.questID
-        indicator:SetAlpha(showIndicator and 1 or 0)
-        indicator:Show()
-        indicator.HighlightTexture:SetShown(isHighlighted)
+
+        local questID = button.questID
+        local hasAnnotations = #STR.GetQuestAnnotations(questID) > 0
+        local blizzardPin = QuestScrollFrame.Contents:FindButtonByQuestID(questID)
+        local showIndicator = isAddonEnabled and hasAnnotations and not blizzardPin
+
+        button.STRIndicator:Update(questID)
+        button.STRIndicator.HighlightTexture:SetShown(questID == STR.MapController:GetHighlightedQuestID())
+        button.HighlightTexture:SetShown(questID == QuestScrollFrame.calloutQuestID or questID == STR.MapController:GetHoveredQuestID())
+        button.STRIndicator:SetAlpha(showIndicator and 1 or 0)
+        button.STRIndicator:Show()
     end
 end
 
-function STR.UpdateQuestIndicatorsInTracker()
+function Local.UpdateTrackerIndicators()
     local isAddonEnabled = STR.IsAddonEnabled()
     QuestObjectiveTracker:EnumerateActiveBlocks(function(block)
         if block.template ~= QuestObjectiveTracker.blockTemplate then
             return
         end
 
-        local hasAnnotations = STR.Data.QuestAnnotations[block.id] ~= nil
+        if not block.STRIndicator then
+            block.STRIndicator = CreateFrame("Button", nil, block, "STRQuestIndicatorTemplate")
+            block.STRIndicator:SetPoint("TOPRIGHT", block.HeaderText, "TOPLEFT", -7, 5)
+        end
+
+        local questID = block.id
+        local hasAnnotations = #STR.GetQuestAnnotations(questID) > 0
         local showIndicator = isAddonEnabled and hasAnnotations and not block.poiButton
 
-        if showIndicator and not block.STRAnnotationIndicator then
-            block.STRAnnotationIndicator = STR.CreateQuestIndicator(block)
-            block.STRAnnotationIndicator:SetPoint("TOPRIGHT", block.HeaderText, "TOPLEFT", -7, 5)
-        end
-        if block.STRAnnotationIndicator then
-            block.STRAnnotationIndicator:SetShown(showIndicator)
-        end
-    end)
-end
-
-function STR.CreateQuestIndicator(parent)
-    local indicator = CreateFrame("Button", nil, parent)
-    indicator:SetSize(20, 20)
-    indicator:EnableMouse(false)
-    SmartNavigation_MarkFrameIgnored(indicator)
-
-    local background = indicator:CreateTexture(nil, "BACKGROUND")
-    background:SetAtlas("UI-QuestPoi-QuestNumber", true)
-    background:SetPoint("CENTER")
-
-    local icon = indicator:CreateTexture(nil, "ARTWORK")
-    icon:SetAtlas("Quest-In-Progress-Icon-yellow", true)
-    icon:SetPoint("CENTER")
-
-    indicator.HighlightTexture = indicator:CreateTexture(nil, "OVERLAY")
-    indicator.HighlightTexture:SetAtlas("UI-QuestPoi-InnerGlow", true)
-    indicator.HighlightTexture:SetBlendMode("ADD")
-    indicator.HighlightTexture:SetPoint("CENTER")
-    indicator.HighlightTexture:Hide()
-
-    return indicator
-end
-
-function STR.SetupMapNavigationWithOpenQuest()
-    -- NOTE: Map navigation calls WorldMapFrame.SetMapID, which by default closes
-    -- any open quest details if it targets a different map (details.questMapID).
-    -- Furthermore QuestMapFrame_ShowQuestDetails calls WorldMapFrame.SetMapID to
-    -- set its details.questMapID as the displayed map, overriding any navigation
-    -- while the quest is open. The solution to allow free map navigation is then
-    -- to prevent both functions from resetting the map during a navigation call.
-    -- If this sounded awkward, it's because I really wanted to get it aligned :|
-
-    local lockedMap = false
-    local originalSetMapID = WorldMapFrame.SetMapID
-    local originalShowQuestDetails = QuestMapFrame_ShowQuestDetails
-
-    local function lockMapAndCall(originalFunction, ...)
-        local wasMapLocked = lockedMap
-        lockedMap = true
-        local ok, message = pcall(originalFunction, ...)
-        lockedMap = wasMapLocked
-        if not ok then
-            error(message, 0)
-        end
-    end
-
-    -- Prevent navigation if the map is locked.
-    WorldMapFrame.SetMapID = function(map, mapID)
-        if lockedMap then
-            return
-        end
-
-        local details = QuestMapFrame.DetailsFrame
-        if details.questID then
-            details.questMapID = mapID
-        end
-
-        return originalSetMapID(map, mapID)
-    end
-
-    -- Lock the map before showing quest details to prevent resetting it.
-    -- NOTE: SetMapID is called first when navigating, so here we're locking that map.
-    QuestMapFrame_ShowQuestDetails = function(questID)
-        local details = QuestMapFrame.DetailsFrame
-        local returnMapID = details.returnMapID
-
-        local refreshingOpenedQuest = details.questID == questID
-        local preserveMapNavigation = lockedMap or refreshingOpenedQuest
-
-        if preserveMapNavigation then
-            lockMapAndCall(originalShowQuestDetails, questID)
-        else
-            originalShowQuestDetails(questID)
-        end
-
-        details.questMapID = WorldMapFrame:GetMapID()
-        if refreshingOpenedQuest then
-            details.returnMapID = returnMapID
-        end
-    end
-
-    STR.OpenQuestFromPin = function(questID)
-        lockMapAndCall(QuestMapFrame_OpenToQuestDetails, questID)
-    end
-end
-
-function STR.SetupDeleteAnnotationsOnQuestTurnIn()
-    local frame = CreateFrame("Frame")
-    frame:RegisterEvent("QUEST_TURNED_IN")
-    frame:SetScript("OnEvent", function(_, _, questID)
-        if STR.Data.Options.deleteOnTurnIn then
-            STR.RemoveAllQuestAnnotations(questID)
-            STR.GetMapController():RefreshAllData()
-        end
+        block.STRIndicator:Update(questID)
+        block.STRIndicator:SetShown(showIndicator)
     end)
 end

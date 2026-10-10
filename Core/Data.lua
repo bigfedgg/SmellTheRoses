@@ -1,188 +1,70 @@
 local _, STR = ...
 local Local = {}
-local Version = 2
+
+local version = 3
 
 function STR.LoadData()
-    SmellTheRosesDB = SmellTheRosesDB or {}
-    SmellTheRosesDB.QuestAnnotations = SmellTheRosesDB.QuestAnnotations or {}
-    SmellTheRosesDB.MapAnnotations = SmellTheRosesDB.MapAnnotations or {}
+    SmellTheRosesDB = SmellTheRosesDB or { Version = version }
+    SmellTheRosesDB.Annotations = SmellTheRosesDB.Annotations or {}
     SmellTheRosesDB.Options = SmellTheRosesDB.Options or {
         deleteOnTurnIn = true,
         showOverview = true
     }
     STR.Data = SmellTheRosesDB
 
-    SmellTheRosesGlobalDB = SmellTheRosesGlobalDB or {}
-    SmellTheRosesGlobalDB.MapAnnotations = SmellTheRosesGlobalDB.MapAnnotations or {}
+    SmellTheRosesGlobalDB = SmellTheRosesGlobalDB or { Version = version }
+    SmellTheRosesGlobalDB.Annotations = SmellTheRosesGlobalDB.Annotations or {}
     STR.GlobalData = SmellTheRosesGlobalDB
 
     Local.Migrate()
 end
 
-function STR.AddQuestAnnotation(questID, mapID, x, y)
-    return STR.AddAnnotation({
-        questID = questID,
-        mapID = mapID,
-        x = x,
-        y = y,
-        title = C_QuestLog.GetTitleForQuestID(questID)
-    })
-end
-
-function STR.AddMapAnnotation(mapID, x, y)
-    return STR.AddAnnotation({
-        mapID = mapID,
-        x = x,
-        y = y,
-        title = C_Map.GetMapInfo(mapID).name
-    })
-end
-
 function STR.AddAnnotation(annotation)
-    local a = annotation
+    annotation.x = RoundToSignificantDigits(annotation.x, 4)
+    annotation.y = RoundToSignificantDigits(annotation.y, 4)
 
-    a.x, a.y = RoundToSignificantDigits(a.x, 4), RoundToSignificantDigits(a.y, 4)
-    if not C_Map.GetMapInfo(a.mapID) or not STR.CanAnnotateMapPosition(a.mapID, a.x, a.y) then
-        return "invalid"
+    if Local.HasAnnotation(annotation) then
+        return "ERROR_DUPLICATE_ANNOTATION"
     end
 
-    local mapAnnotations
-    if a.questID then
-        STR.Data.QuestAnnotations[a.questID] = STR.Data.QuestAnnotations[a.questID] or {}
-        STR.Data.QuestAnnotations[a.questID][a.mapID] = STR.Data.QuestAnnotations[a.questID][a.mapID] or {}
-        mapAnnotations = STR.Data.QuestAnnotations[a.questID][a.mapID]
-        a.icon = "quest"
-    else
-        local mapAnnotationStore = Local.GetMapAnnotationStore(annotation)
-        mapAnnotationStore[a.mapID] = mapAnnotationStore[a.mapID] or {}
-        mapAnnotations = mapAnnotationStore[a.mapID]
-        a.icon = "map"
-    end
-
-    if Local.HasAnnotation(mapAnnotations, a.x, a.y, a.note) then
-        return "duplicate"
-    end
-
-    table.insert(mapAnnotations, a)
+    table.insert(STR.Data.Annotations, annotation)
 end
 
-function STR.RemoveQuestAnnotation(annotation)
-    -- NOTE: The number of annotations per map is expected to be small.
-    local questAnnotations = STR.Data.QuestAnnotations[annotation.questID]
-    local mapAnnotations = questAnnotations[annotation.mapID]
+function STR.SetGlobalMapAnnotation(annotation, isGlobal)
+    STR.RemoveAnnotation(annotation)
+    annotation.isGlobal = isGlobal or nil
+    table.insert(isGlobal and STR.GlobalData.Annotations or STR.Data.Annotations, annotation)
+end
 
-    for index, candidate in ipairs(mapAnnotations) do
-        if candidate == annotation then
-            table.remove(mapAnnotations, index)
+function STR.RemoveAnnotation(annotation)
+    tDeleteItem(STR.Data.Annotations, annotation)
+    tDeleteItem(STR.GlobalData.Annotations, annotation)
+end
 
-            if #mapAnnotations == 0 then
-                questAnnotations[annotation.mapID] = nil
-            end
-
-            if next(questAnnotations) == nil then
-                STR.RemoveAllQuestAnnotations(annotation.questID)
-            end
-            return
-        end
+function STR.RemoveQuestAnnotations(questID)
+    for _, annotation in ipairs(STR.GetQuestAnnotations(questID)) do
+        STR.RemoveAnnotation(annotation)
     end
 end
 
-function STR.RemoveAllQuestAnnotations(questID)
-    STR.Data.QuestAnnotations[questID] = nil
-end
-
-function STR.CleanupAllTurnedInQuestAnnotations()
-    for questID in pairs(STR.Data.QuestAnnotations) do
-        if C_QuestLog.IsQuestFlaggedCompleted(questID) and not C_QuestLog.IsOnQuest(questID) then
-            STR.RemoveAllQuestAnnotations(questID)
-        end
-    end
-end
-
-function STR.RemoveMapAnnotation(annotation)
-    -- NOTE: The number of annotations per map is expected to be small.
-    local mapAnnotationStore = Local.GetMapAnnotationStore(annotation)
-    local mapAnnotations = mapAnnotationStore[annotation.mapID]
-
-    for candidateID, candidate in ipairs(mapAnnotations) do
-        if candidate == annotation then
-            table.remove(mapAnnotations, candidateID)
-
-            if #mapAnnotations == 0 then
-                mapAnnotationStore[annotation.mapID] = nil
-            end
-            return
-        end
-    end
-end
-
-function STR.ToggleGlobalMapAnnotation(annotation)
-    STR.RemoveMapAnnotation(annotation)
-    annotation.isGlobal = not annotation.isGlobal or nil
-
-    local annotationMaps = Local.GetMapAnnotationStore(annotation)
-    annotationMaps[annotation.mapID] = annotationMaps[annotation.mapID] or {}
-    table.insert(annotationMaps[annotation.mapID], annotation)
-end
-
-function STR.SelectAnnotationsToDisplay(targetMapID, focusedQuestID)
-    local annotations = {}
-
-    -- If a quest is focused, return only quest annotations.
-    if focusedQuestID then
-        local questMaps = STR.Data.QuestAnnotations[focusedQuestID]
-        for _, mapAnnotations in pairs(questMaps or {}) do
-            for _, annotation in ipairs(mapAnnotations) do
-                table.insert(annotations, annotation)
-            end
-        end
-
-    -- If overview is disabled, return only the annotations directly on the target map.
-    elseif not STR.Data.Options.showOverview then
-        for _, questMaps in pairs(STR.Data.QuestAnnotations) do
-            for _, annotation in ipairs(questMaps[targetMapID] or {}) do
-                table.insert(annotations, annotation)
-            end
-        end
-        for _, annotationMaps in ipairs({STR.Data.MapAnnotations, STR.GlobalData.MapAnnotations}) do
-            for _, annotation in ipairs(annotationMaps[targetMapID] or {}) do
-                table.insert(annotations, annotation)
-            end
-        end
-
-    -- If overview is enabled, return all annotations (they will be filtered during projection).
-    -- TODO: If we pass the target map children we could already filter them here.
-    elseif STR.Data.Options.showOverview then
-        for _, questMaps in pairs(STR.Data.QuestAnnotations) do
-            for _, mapAnnotations in pairs(questMaps) do
-                for _, annotation in ipairs(mapAnnotations) do
-                    table.insert(annotations, annotation)
-                end
-            end
-        end
-        for _, annotationMaps in ipairs({STR.Data.MapAnnotations, STR.GlobalData.MapAnnotations}) do
-            for _, mapAnnotations in pairs(annotationMaps) do
-                for _, annotation in ipairs(mapAnnotations) do
-                    table.insert(annotations, annotation)
-                end
-            end
-        end
-    end
-
+function STR.GetAllAnnotations()
+    local annotations = CopyTable(STR.Data.Annotations, true)
+    tAppendAll(annotations, STR.GlobalData.Annotations)
     return annotations
 end
 
-function Local.GetMapAnnotationStore(annotation)
-    return annotation.isGlobal and STR.GlobalData.MapAnnotations or STR.Data.MapAnnotations
+function STR.GetQuestAnnotations(questID)
+    return tFilter(STR.Data.Annotations, function(annotation)
+        return annotation.questID == questID
+    end, true)
 end
 
-function Local.HasAnnotation(annotations, x, y, note)
-    for _, annotation in ipairs(annotations) do
-        if annotation.x == x and annotation.y == y and (annotation.note or "") == (note or "") then
-            return true
-        end
-    end
-    return false
+function Local.HasAnnotation(annotation)
+    return ContainsIf(STR.GetAllAnnotations(), function(candidate)
+        return candidate.questID == annotation.questID and candidate.mapID == annotation.mapID
+                and candidate.x == annotation.x and candidate.y == annotation.y
+                and (candidate.note or "") == (annotation.note or "")
+    end)
 end
 
 function Local.Migrate()
@@ -210,7 +92,40 @@ function Local.Migrate()
                 annotation._allowedMaxCharacters = 2000
             end
         end
+        STR.Data.Version = 2
     end
 
-    STR.Data.Version = Version
+    -- Version 3:
+    -- >>>> Annotations are one single list because it makes operations simpler.
+    -- >>>> There is no more icon for now, we'll see if we need it later.
+    if STR.Data.Version < 3 then
+        for _, questMaps in pairs(STR.Data.QuestAnnotations) do
+            for _, annotations in pairs(questMaps) do
+                for _, annotation in ipairs(annotations) do
+                    annotation.icon = nil
+                    table.insert(STR.Data.Annotations, annotation)
+                end
+            end
+        end
+        for _, annotations in pairs(STR.Data.MapAnnotations) do
+            for _, annotation in ipairs(annotations) do
+                annotation.icon = nil
+                table.insert(STR.Data.Annotations, annotation)
+            end
+        end
+        STR.Data.QuestAnnotations = nil
+        STR.Data.MapAnnotations = nil
+    end
+    if not STR.GlobalData.Version then
+        for _, annotations in pairs(STR.GlobalData.MapAnnotations) do
+            for _, annotation in ipairs(annotations) do
+                annotation.icon = nil
+                table.insert(STR.GlobalData.Annotations, annotation)
+            end
+        end
+        STR.GlobalData.MapAnnotations = nil
+    end
+
+    STR.Data.Version = version
+    STR.GlobalData.Version = version
 end

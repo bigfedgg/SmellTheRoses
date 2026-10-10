@@ -1,38 +1,37 @@
 <Ui xmlns="http://www.blizzard.com/wow/ui/">
-    <DropdownButton name="STRNoteEditorDropdownTemplate"
-                    inherits="WowStyle1DropdownTemplate"
-                    mixin="STRNoteEditorContainerController"
-                    hidden="true"
-                    alpha="0"
-                    enableMouse="false"
-                    virtual="true">
-        <Size x="1" y="1"/>
-        <KeyValues>
-            <KeyValue key="menuWidth" type="number" value="220"/>
-        </KeyValues>
-        <Scripts>
-            <OnLoad method="OnLoad"/>
-            <OnHide method="OnHide"/>
-        </Scripts>
-    </DropdownButton>
-
-    <Frame name="STRNoteEditorFrameTemplate"
-           mixin="STRNoteEditorFrameController"
+    <Frame name="STRNoteEditorTemplate"
+           mixin="STRNoteEditorMixin"
            virtual="true">
-        <Size x="196" y="1"/>
-        <KeyValues>
-            <KeyValue key="lines" type="number" value="6"/>
-        </KeyValues>
+        <Size x="196" y="96"/>
         <Frames>
-            <ScrollFrame parentKey="ScrollFrame"
-                         inherits="InputScrollFrameTemplate"
-                         setAllPoints="true">
-                <KeyValues>
-                    <KeyValue key="hideCharCount" type="boolean" value="true"/>
-                </KeyValues>
-            </ScrollFrame>
+            <Frame parentKey="ScrollingEditBox"
+                   inherits="ScrollingEditBoxTemplate">
+                <Anchors>
+                    <Anchor point="TOPLEFT"/>
+                    <Anchor point="BOTTOMRIGHT" y="24"/>
+                </Anchors>
+            </Frame>
+
+            <EventFrame parentKey="ScrollBar"
+                        inherits="MinimalScrollBar">
+                <Anchors>
+                    <Anchor point="TOPRIGHT" relativeKey="$parent.ScrollingEditBox" relativePoint="TOPRIGHT"/>
+                    <Anchor point="BOTTOMRIGHT" relativeKey="$parent.ScrollingEditBox" relativePoint="BOTTOMRIGHT"/>
+                </Anchors>
+            </EventFrame>
+
+            <!-- The toggle button is a POI button because I'm lazy and I want to reuse everything. -->
+            <Button parentKey="ToggleButton"
+                    inherits="POIButtonTemplate, STRAnnotationGlobalFillTemplate"
+                    mixin="STRNoteEditorToggleButtonMixin"
+                    hidden="false">
+                <Anchors>
+                    <Anchor point="BOTTOMRIGHT"/>
+                </Anchors>
+            </Button>
         </Frames>
         <Scripts>
+            <OnLoad method="OnLoad"/>
             <OnHide method="OnHide"/>
         </Scripts>
     </Frame>

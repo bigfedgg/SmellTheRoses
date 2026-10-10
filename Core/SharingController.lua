@@ -1,7 +1,7 @@
 local addonName, STR = ...
 local Local = {}
 
--- Native talent build followed by CSTR-questID:mapID:x:y:title:note.
+-- Native talent build followed by CSTR-questID:mapID:x:y:title:note:isTurnIn.
 local transportLinkPattern = "|Htalentbuild:[^|]-CSTR%-([^|]+)|h.-|h"
 local inputLinkPattern = "|cffffff00|Haddon:" .. addonName .. ":([^|]+)|h.-|h|r"
 
@@ -39,7 +39,7 @@ function STR.ShareAnnotation(annotation)
     -- Even though the edit box already enforces the budget, old annotations could already be over.
     local link, contentSize = Local.CreateDisplayLink(annotation)
     if contentSize >= STR.MaxAnnotationContentSize then
-        ChatFrameUtil.DisplaySystemMessageInPrimary("The annotation content is too large to share.")
+        ChatFrameUtil.DisplaySystemMessageInPrimary(STR.L["SHARING_TOO_LARGE"])
         return
     end
 
@@ -48,7 +48,8 @@ end
 
 function Local.FormatLinkForChat(_, _, message, sender, ...)
     local text, count = message:gsub(transportLinkPattern, function(payload)
-        return Local.CreateDisplayLink(Local.DecodeAnnotation(payload))
+        local annotation = Local.DecodeAnnotation(payload)
+        return annotation and Local.CreateDisplayLink(annotation)
     end)
     if count > 0 then
         return false, text, sender, ...
@@ -78,27 +79,28 @@ end
 
 function Local.CreateDisplayLink(annotation)
     local payload, contentSize = Local.EncodeAnnotation(annotation)
-    local title = annotation.title
-    local link = LinkUtil.FormatLink(LinkTypes.AddOn, "[StR: " .. title:gsub("|", "||") .. "]", addonName, payload)
+    local label = STR.L["SHARING_LINK_LABEL"]:format((annotation.title:gsub("|", "||")))
+    local link = LinkUtil.FormatLink(LinkTypes.AddOn, label, addonName, payload)
     return "|cffffff00" .. link .. "|r", contentSize
 end
 
 function Local.OnLinkEntered(_, chatFrame, link)
     local payload = link:match("^addon:" .. addonName .. ":(.+)$")
-    if not payload then
+    local annotation = payload and Local.DecodeAnnotation(payload)
+    if not annotation then
         return
     end
 
-    local annotation = Local.DecodeAnnotation(payload)
     GameTooltip:SetOwner(chatFrame, "ANCHOR_CURSOR")
-    GameTooltip_SetTitle(GameTooltip, annotation.title)
-    GameTooltip_AddNormalLine(GameTooltip, ("(%.2f, %.2f)"):format(annotation.x * 100, annotation.y * 100))
+    GameTooltip_SetTitle(GameTooltip, annotation.title, NORMAL_FONT_COLOR)
+    GameTooltip_AddHighlightLine(GameTooltip, ("(%.2f, %.2f)"):format(annotation.x * 100, annotation.y * 100))
     if annotation.note then
         GameTooltip_AddBlankLineToTooltip(GameTooltip)
-        GameTooltip_AddNormalLine(GameTooltip, annotation.note, true)
+        GameTooltip_AddNormalLine(GameTooltip, STR.L["NOTE_TITLE"])
+        GameTooltip_AddHighlightLine(GameTooltip, annotation.note, true)
     end
     GameTooltip_AddBlankLineToTooltip(GameTooltip)
-    GameTooltip_AddInstructionLine(GameTooltip, "<Click to add annotation>")
+    GameTooltip_AddInstructionLine(GameTooltip, STR.L["SHARING_LINK_ADD_HINT"])
     GameTooltip:Show()
 end
 
@@ -114,6 +116,11 @@ function Local.OnLinkClicked(_, link, _, button)
         return
     end
     local annotation = Local.DecodeAnnotation(payload)
+    if not annotation then
+        ChatFrameUtil.DisplaySystemMessageInPrimary(STR.L["ERROR_INVALID_ANNOTATION"])
+        return
+    end
+
     if IsModifiedClick("CHATLINK") then
         STR.ShareAnnotation(annotation)
     else
@@ -122,49 +129,61 @@ function Local.OnLinkClicked(_, link, _, button)
 end
 
 function Local.ReceiveAnnotation(annotation)
-    local error = STR.AddAnnotation(annotation)
-    if error == "invalid" then
-        ChatFrameUtil.DisplaySystemMessageInPrimary("The annotation is not valid.")
-        return
-    elseif error == "duplicate" then
-        ChatFrameUtil.DisplaySystemMessageInPrimary("The annotation already exists.")
+    local errorKey
+    if not STR.Utils.CanAnnotateMapPosition(annotation) then
+        errorKey = "ERROR_INVALID_ANNOTATION"
+    else
+        errorKey = STR.AddAnnotation(annotation)
+    end
+    if errorKey then
+        ChatFrameUtil.DisplaySystemMessageInPrimary(STR.L[errorKey])
         return
     end
 
-    local mapController = STR.GetMapController()
-    mapController:OpenAnnotation(annotation)
-    mapController:RefreshAllData()
-    mapController:PingAnnotation(annotation)
-    ChatFrameUtil.DisplaySystemMessageInPrimary("The annotation has been added to your map.")
+    if STR.IsAddonEnabled() then
+        STR.MapController:OpenAnnotation(annotation)
+        STR.MapController:RefreshAllData()
+        STR.MapController:PingAnnotations({ annotation })
+        STR.UpdateQuestIndicators()
+    end
+    ChatFrameUtil.DisplaySystemMessageInPrimary(STR.L["SHARING_ADDED"])
 end
 
 function Local.EncodeAnnotation(annotation)
-    local title, note = STR.EscapeText(annotation.title), STR.EscapeText(annotation.note)
-    return ("%s:%d:%04.0f:%04.0f:%s:%s"):format(
-        annotation.questID or "", annotation.mapID,
-        annotation.x * 10000, annotation.y * 10000,
-        title, note), #title + #note
+    local title, note = STR.Utils.EscapeText(annotation.title), STR.Utils.EscapeText(annotation.note)
+    return ("%s:%d:%04.0f:%04.0f:%s:%s:%d"):format(
+            annotation.questID or "", annotation.mapID,
+            annotation.x * 10000, annotation.y * 10000,
+            title, note, annotation.isTurnIn and 1 or 0), #title + #note
 end
 
 function Local.DecodeAnnotation(payload)
-    local questID, mapID, x, y, title, note = payload:match("^([^:]*):(%d+):(%d+):(%d+):([^:]*):(.*)$")
-    return {
-        questID = tonumber(questID),
-        mapID = tonumber(mapID),
-        x = tonumber(x) / 10000,
-        y = tonumber(y) / 10000,
-        title = Local.UnescapeText(title),
-        note = note ~= "" and Local.UnescapeText(note) or nil
-    }
-end
+    local questID, mapID, x, y, title, note, isTurnIn = strsplit(":", payload)
+    questID, mapID, x, y = tonumber(questID), tonumber(mapID), tonumber(x), tonumber(y)
 
-function STR.EscapeText(text)
-    if not text then
-        return ""
+    local mapInfo = mapID and C_Map.GetMapInfo(mapID)
+    if not (mapInfo and x and y and title and note) then
+        return
     end
-    return (text:gsub("[%c%%|{}]", function(character)
-        return ("%%%02X"):format(character:byte())
-    end)):gsub(":", "%%3A")
+
+    -- Transform the title to the proper language.
+    -- Quest titles might not be immediately available if the user hasn't seen the quest recently.
+    -- TODO: Eventually we can lookup the quest title in the background.
+    if questID then
+        title = C_QuestLog.GetTitleForQuestID(questID) or Local.UnescapeText(title)
+    else
+        title = mapInfo.name
+    end
+
+    return {
+        questID = questID,
+        mapID = mapID,
+        x = x / 10000,
+        y = y / 10000,
+        title = title,
+        note = note ~= "" and Local.UnescapeText(note) or nil,
+        isTurnIn = isTurnIn == "1" or nil
+    }
 end
 
 function Local.UnescapeText(text)

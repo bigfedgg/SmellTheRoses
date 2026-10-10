@@ -1,66 +1,86 @@
 local _, STR = ...
+local Local = {}
 
 function STR.SetupSettings()
     local categoryName = "Smell the Roses"
-    local category, layout = Settings.RegisterVerticalLayoutCategory(categoryName)
+    local panel = CreateFrame("Frame", nil, nil, "STRSettingsPanelTemplate")
+    panel.Title:SetText(categoryName)
 
-    -- Delete quest annotations on turn-in.
-    local setting = Settings.RegisterAddOnSetting(
-            category,
-            "STR_DELETE_ANNOTATIONS_ON_TURN_IN",
-            "deleteOnTurnIn",
-            STR.Data.Options,
-            Settings.VarType.Boolean,
-            "Delete after quest turn-in",
-            true
-    )
-
-    local initializer = CreateSettingsCheckboxWithButtonInitializer(
-            setting,
-            "Cleanup",
-            function()
-                StaticPopup_Show("GENERIC_CONFIRMATION", nil, nil, {
-                    text = "Delete all existing annotations for quests this character has already turned in?",
-                    acceptText = DELETE,
-                    cancelText = CANCEL,
-                    callback = function()
-                        STR.CleanupAllTurnedInQuestAnnotations()
-                        STR.GetMapController():RefreshAllData()
-                    end
-                })
-            end,
-            nil,
-            false,
-            "Delete quest annotations after you turn in the quest."
-    )
-    layout:AddInitializer(initializer)
-
-    -- Disable with Blizzard objectives.
-    local objectivesSetting = Settings.RegisterAddOnSetting(
-            category,
-            "STR_DISABLE_WITH_QUEST_OBJECTIVES",
-            "disableWithQuestObjectives",
-            STR.Data.Options,
-            Settings.VarType.Boolean,
-            "Disable with Blizzard objectives",
-            false
-    )
-    Settings.CreateCheckbox(
-            category,
-            objectivesSetting,
-            "Disable addon when Blizzard's Quest Objectives are enabled."
-    )
-    objectivesSetting:SetValueChangedCallback(STR.RefreshAnnotationVisibility)
-    CVarCallbackRegistry:RegisterCallback("questPOI", STR.RefreshAnnotationVisibility, STR)
-
+    local category = Settings.RegisterCanvasLayoutCategory(panel, categoryName)
     Settings.RegisterAddOnCategory(category)
-end
-
-function STR.RefreshAnnotationVisibility()
-    STR.GetMapController():RefreshAllData()
-    STR.UpdateQuestIndicators()
 end
 
 function STR.IsAddonEnabled()
     return not (STR.Data.Options.disableWithQuestObjectives and GetCVarBool("questPOI"))
+end
+
+-- Used by: STRSettingsPanelTemplate.
+STRSettingsPanelMixin = {}
+
+function STRSettingsPanelMixin:OnLoad()
+    -- Delete quest annotations on turn-in.
+    self.DeleteOnTurnIn:Init(
+            STR.L["SETTINGS_DELETE_ON_TURN_IN_LABEL"],
+            STR.L["SETTINGS_DELETE_ON_TURN_IN_TOOLTIP"],
+            "deleteOnTurnIn"
+    )
+    self.CleanupButton:SetText(STR.L["SETTINGS_CLEANUP_BUTTON"])
+    self.CleanupButton:SetScript("OnClick", function()
+        StaticPopup_Show("GENERIC_CONFIRMATION", nil, nil, {
+            text = STR.L["SETTINGS_CLEANUP_CONFIRMATION"],
+            acceptText = DELETE,
+            cancelText = CANCEL,
+            callback = Local.CleanupTurnedInQuestAnnotations
+        })
+    end)
+
+    -- Disable with Blizzard objectives.
+    self.DisableWithObjectives:Init(
+            STR.L["SETTINGS_DISABLE_WITH_OBJECTIVES_LABEL"],
+            STR.L["SETTINGS_DISABLE_WITH_OBJECTIVES_TOOLTIP"],
+            "disableWithQuestObjectives",
+            function()
+                STR.MapController:RefreshAllData()
+                STR.UpdateQuestIndicators()
+            end
+    )
+end
+
+-- Used by: STRSettingsCheckboxTemplate.
+STRSettingsCheckboxMixin = {}
+
+function STRSettingsCheckboxMixin:OnLoad()
+    self.Tooltip:SetScript("OnMouseUp", function()
+        self.Checkbox:Click()
+    end)
+end
+
+function STRSettingsCheckboxMixin:Init(label, tooltip, optionKey, onValueChanged)
+    local function initTooltip()
+        Settings.InitTooltip(label, tooltip)
+    end
+
+    self.Text:SetText(label)
+    self.Tooltip:SetTooltipFunc(initTooltip)
+    self.Checkbox:Init(STR.Data.Options[optionKey], initTooltip)
+    self.Checkbox:RegisterCallback(SettingsCheckboxMixin.Event.OnValueChanged, function(_, value)
+        PlaySound(value and SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON or SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_OFF)
+        STR.Data.Options[optionKey] = value
+        if onValueChanged then
+            onValueChanged()
+        end
+    end, self)
+end
+
+function Local.CleanupTurnedInQuestAnnotations()
+    for _, annotation in ipairs(STR.GetAllAnnotations()) do
+        local questID = annotation.questID
+        local isTurnedIn = questID
+                and C_QuestLog.IsQuestFlaggedCompleted(questID)
+                and not C_QuestLog.IsOnQuest(questID)
+        if isTurnedIn then
+            STR.RemoveQuestAnnotations(questID)
+        end
+    end
+    STR.MapController:RefreshAllData()
 end

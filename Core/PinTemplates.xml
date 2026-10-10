@@ -1,0 +1,58 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/">
+    <!-- TODO: Use an icon from a Blizzard atlas instead of the custom blue tint. -->
+    <Frame name="STRAnnotationGlobalFillTemplate" virtual="true">
+        <Layers>
+            <Layer level="ARTWORK" textureSubLevel="1">
+                <Texture parentKey="GlobalFill"
+                         atlas="UI-QuestPoi-QuestNumber-SuperTracked"
+                         useAtlasSize="true"
+                         desaturated="true"
+                         hidden="true">
+                    <Color r="0.15" g="0.64" b="0.8"/>
+                    <Anchors>
+                        <Anchor point="CENTER"/>
+                    </Anchors>
+                </Texture>
+                <MaskTexture atlas="CircleMaskScalable"
+                             hWrapMode="CLAMPTOBLACKADDITIVE"
+                             vWrapMode="CLAMPTOBLACKADDITIVE">
+                    <Size x="18" y="18"/>
+                    <Anchors>
+                        <Anchor point="CENTER"/>
+                    </Anchors>
+                    <MaskedTextures>
+                        <MaskedTexture childKey="GlobalFill"/>
+                    </MaskedTextures>
+                </MaskTexture>
+            </Layer>
+        </Layers>
+    </Frame>
+
+    <!-- For quest annotations I just re-use Blizzard pins. -->
+    <Button name="STRQuestAnnotationPinTemplate"
+            inherits="QuestPinTemplate"
+            mixin="STRAnnotationPinMixin, STRQuestAnnotationPinMixin"
+            virtual="true"/>
+
+    <!-- Map annotations are custom POI buttons. -->
+    <Button name="STRMapAnnotationPinTemplate"
+            inherits="POIButtonTemplate, STRAnnotationGlobalFillTemplate"
+            mixin="MapCanvasPinMixin, STRAnnotationPinMixin, STRMapAnnotationPinMixin"
+            virtual="true"/>
+
+    <!-- Quest indicators are also custom POI buttons you can't click. -->
+    <Button name="STRQuestIndicatorTemplate"
+            inherits="POIButtonTemplate"
+            mixin="STRQuestIndicatorMixin"
+            enableMouse="false"
+            virtual="true">
+        <Scripts>
+            <OnLoad method="OnLoad"/>
+        </Scripts>
+    </Button>
+
+    <!-- Ping frame after opening a quest. -->
+    <Frame name="STRAnnotationPingTemplate"
+           inherits="MapPinPingTemplate"
+           virtual="true"/>
+</Ui>

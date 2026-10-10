@@ -1,0 +1,91 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/">
+    <Frame name="STRSettingsCheckboxTemplate"
+           mixin="STRSettingsCheckboxMixin"
+           virtual="true">
+        <Size y="26"/>
+        <Layers>
+            <Layer level="OVERLAY">
+                <FontString parentKey="Text" inherits="GameFontNormal" justifyH="LEFT" wordwrap="false">
+                    <Anchors>
+                        <Anchor point="LEFT" x="37"/>
+                        <Anchor point="RIGHT" relativePoint="CENTER" x="-85"/>
+                    </Anchors>
+                </FontString>
+            </Layer>
+        </Layers>
+        <Frames>
+            <Frame parentKey="Tooltip"
+                   mixin="DefaultTooltipMixin">
+                <Anchors>
+                    <Anchor point="TOPLEFT"/>
+                    <Anchor point="BOTTOMRIGHT" relativePoint="BOTTOM" x="-80"/>
+                </Anchors>
+                <Layers>
+                    <Layer level="BACKGROUND">
+                        <Texture parentKey="HoverBackground" inherits="HoverBackgroundTemplate"/>
+                    </Layer>
+                </Layers>
+                <Scripts>
+                    <OnLoad method="OnLoad"/>
+                </Scripts>
+            </Frame>
+
+            <CheckButton parentKey="Checkbox"
+                         inherits="SettingsCheckboxTemplate">
+                <Anchors>
+                    <Anchor point="LEFT" relativePoint="CENTER" x="-80"/>
+                </Anchors>
+            </CheckButton>
+        </Frames>
+        <Scripts>
+            <OnLoad method="OnLoad"/>
+        </Scripts>
+    </Frame>
+
+    <Frame name="STRSettingsPanelTemplate"
+           mixin="STRSettingsPanelMixin"
+           virtual="true">
+        <Layers>
+            <Layer level="ARTWORK">
+                <FontString parentKey="Title" inherits="GameFontHighlightHuge" justifyH="LEFT">
+                    <Anchors>
+                        <Anchor point="TOPLEFT" x="7" y="-22"/>
+                    </Anchors>
+                </FontString>
+                <Texture atlas="Options_HorizontalDivider" useAtlasSize="true">
+                    <Anchors>
+                        <Anchor point="TOP" y="-50"/>
+                    </Anchors>
+                </Texture>
+            </Layer>
+        </Layers>
+        <Frames>
+            <Frame parentKey="DeleteOnTurnIn"
+                   inherits="STRSettingsCheckboxTemplate">
+                <Anchors>
+                    <Anchor point="TOPLEFT" x="10" y="-62"/>
+                    <Anchor point="TOPRIGHT" x="-20" y="-62"/>
+                </Anchors>
+            </Frame>
+
+            <Button parentKey="CleanupButton"
+                    inherits="UIPanelButtonTemplate">
+                <Size x="200" y="22"/>
+                <Anchors>
+                    <Anchor point="LEFT" relativeKey="$parent.DeleteOnTurnIn.Checkbox" relativePoint="RIGHT" x="5"/>
+                </Anchors>
+            </Button>
+
+            <Frame parentKey="DisableWithObjectives"
+                   inherits="STRSettingsCheckboxTemplate">
+                <Anchors>
+                    <Anchor point="TOPLEFT" relativeKey="$parent.DeleteOnTurnIn" relativePoint="BOTTOMLEFT" y="-9"/>
+                    <Anchor point="TOPRIGHT" relativeKey="$parent.DeleteOnTurnIn" relativePoint="BOTTOMRIGHT" y="-9"/>
+                </Anchors>
+            </Frame>
+        </Frames>
+        <Scripts>
+            <OnLoad method="OnLoad"/>
+        </Scripts>
+    </Frame>
+</Ui>
