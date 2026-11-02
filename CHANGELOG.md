@@ -1,3 +1,7 @@
+## 1.5.1
+
+- Fixed how map clicks are handled. Should make the addon completely taint-free now.
+
 ## 1.5.0
 
 This is probably the last update before launch. It changes a lot of behavior to make it as close to Blizzard as possible. It also fixes some taint issues that could break the UI when the addon was enabled. I've leveled with this version and found it to be very enjoyable and easy to use!

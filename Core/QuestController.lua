@@ -52,7 +52,7 @@ function STR.SetupMapNavigationWithOpenQuest()
         PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON)
         local returnMapID = stickyReturnMapID
         STR.CloseStickyQuestDetails()
-        C_Map.OpenWorldMap(returnMapID)
+        STR.MapController:OpenMap(returnMapID)
     end)
     Local.CreateStickyDetailsButton(details.AbandonButton, function()
         QuestMapQuestOptions_AbandonQuest(stickyQuestID)

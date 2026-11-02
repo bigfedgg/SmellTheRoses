@@ -19,9 +19,7 @@ STR.MapController = STRMapController
 function STR.SetupMap()
     -- Hook the map controller to the WorldMapFrame.
     WorldMapFrame:AddDataProvider(STRMapController)
-    WorldMapFrame:AddCanvasClickHandler(function(_, button, x, y)
-        return STRMapController:OnCanvasClick(button, x, y)
-    end)
+    Local.SetupAnnotationInput()
 
     -- Setup map overview toggle.
     Menu.ModifyMenu("MENU_WORLD_MAP_TRACKING", function(_, rootDescription)
@@ -40,6 +38,42 @@ function STR.SetupMap()
                     GameTooltip_AddNormalLine(tooltip, STR.L["MAP_FILTER_OVERVIEW_TOOLTIP"], true)
                 end)
     end)
+end
+
+function Local.SetupAnnotationInput()
+    local scroll = WorldMapFrame.ScrollContainer
+    local input = CreateFrame("Frame", nil, scroll, "STRAnnotationClickCaptureTemplate")
+    input:SetAllPoints(scroll)
+
+    local function updateCapture(frame)
+        frame:SetShown(IsAltKeyDown() and STR.IsAddonEnabled())
+    end
+
+    input:RegisterEvent("MODIFIER_STATE_CHANGED")
+    input:SetScript("OnEvent", updateCapture)
+    input:SetScript("OnUpdate", updateCapture)
+    input:SetScript("OnHide", function(frame)
+        frame.downX, frame.downY = nil, nil
+    end)
+    input:SetScript("OnMouseDown", function(frame, button)
+        if button == "LeftButton" then
+            frame.downX, frame.downY = scroll:GetCursorPosition()
+        end
+    end)
+    input:SetScript("OnMouseUp", function(frame, button)
+        local downX, downY = frame.downX, frame.downY
+        frame.downX, frame.downY = nil, nil
+        if button ~= "LeftButton" or not downX then
+            return
+        end
+
+        local cursorX, cursorY = scroll:GetCursorPosition()
+        local deltaX, deltaY = cursorX - downX, cursorY - downY
+        if deltaX * deltaX + deltaY * deltaY <= 20 then
+            STRMapController:AddAnnotationAtPosition(scroll:NormalizeUIPosition(cursorX, cursorY))
+        end
+    end)
+    updateCapture(input)
 end
 
 function STRMapController:RefreshAllData()
@@ -77,6 +111,17 @@ function STRMapController:RemoveAllData()
     map:RemoveAllPinsByTemplate(mapPinTemplate)
 end
 
+function STRMapController:OpenMap(mapID)
+    local map = self:GetMap()
+    if map:IsShown() then
+        if mapID then
+            map:SetMapID(mapID)
+        end
+    else
+        C_Map.OpenWorldMap(mapID)
+    end
+end
+
 function STRMapController:OpenAnnotation(annotation)
     local questID = annotation.questID
     local isFocused = questID and questID == STR.GetFocusedQuestID()
@@ -87,7 +132,7 @@ function STRMapController:OpenAnnotation(annotation)
         C_SuperTrack.SetSuperTrackedQuestID(questID)
     end
 
-    C_Map.OpenWorldMap(annotation.mapID)
+    self:OpenMap(annotation.mapID)
 
     if not isFocused then
         STR.CloseStickyQuestDetails()
@@ -106,7 +151,7 @@ function STRMapController:ShowQuestAnnotations(questID)
         return
     end
 
-    C_Map.OpenWorldMap(STR.Utils.GetSmallestMapContaining(annotations))
+    self:OpenMap(STR.Utils.GetSmallestMapContaining(annotations))
     self:PingAnnotations(annotations)
 end
 
@@ -149,9 +194,9 @@ function STRMapController:GetAnnotationPin(annotation)
     end
 end
 
-function STRMapController:OnCanvasClick(button, x, y)
-    if not STR.IsAddonEnabled() or button ~= "LeftButton" or not IsAltKeyDown() then
-        return false
+function STRMapController:AddAnnotationAtPosition(x, y)
+    if not STR.IsAddonEnabled() or not IsAltKeyDown() then
+        return
     end
 
     local mapID = self:GetMap():GetMapID()
@@ -172,12 +217,11 @@ function STRMapController:OnCanvasClick(button, x, y)
     end
     if errorKey then
         ChatFrameUtil.DisplaySystemMessageInPrimary(STR.L[errorKey])
-        return true
+        return
     end
 
     self:RefreshAllData()
     STR.UpdateQuestIndicators()
-    return true
 end
 
 function STRMapController:OnAdded(map)

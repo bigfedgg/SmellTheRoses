@@ -56,6 +56,9 @@ function STRAnnotationPinMixin:ShouldMouseButtonBePassthrough(_)
     return false
 end
 
+function STRAnnotationPinMixin:CheckMouseButtonPassthrough()
+end
+
 -- Used by: STRQuestAnnotationPinTemplate.
 STRQuestAnnotationPinMixin = {}
 
@@ -144,4 +147,10 @@ function STRQuestIndicatorMixin:Update(questID)
     self:SetSelected(questID == C_SuperTrack.GetSuperTrackedQuestID())
     self:SetStyle(STR.Utils.GetQuestAnnotationStyle(STR.Utils.IsQuestReadyToTurnIn(questID)))
     self:UpdateButtonStyle()
+end
+
+-- Used by: STRAnnotationPingTemplate.
+STRAnnotationPingMixin = {}
+
+function STRAnnotationPingMixin:CheckMouseButtonPassthrough()
 end
