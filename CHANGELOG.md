@@ -1,3 +1,7 @@
+## 1.5.2
+
+- Quick fix to Spoken integration
+
 ## 1.5.1
 
 - Fixed how map clicks are handled. Should make the addon completely taint-free now.

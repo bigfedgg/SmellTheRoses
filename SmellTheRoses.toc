@@ -22,4 +22,5 @@ Core\QuestController.lua
 Core\SharingController.lua
 Core\Settings.lua
 Core\SettingsFrame.xml
+Compat\Spoken.lua
 Core\SmellTheRoses.lua
