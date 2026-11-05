@@ -18,6 +18,7 @@ You just accepted a quest. It tells you to kill 10 Murlocs to the South East. Wi
 <p align="center">
   <a href=".previews/1-map-with-quests.webp" target="_blank"><img src=".previews/1-map-with-quests.webp" alt="See your annotations in the journal" width="300"></a>
   <a href=".previews/2-annotation-note.webp" target="_blank"><img src=".previews/2-annotation-note.webp" alt="Right-click an annotation to write a note" width="300"></a>
+  <a href=".previews/6-map-annotation-icons.webp" target="_blank"><img src=".previews/6-map-annotation-icons.webp" alt="Right-click an annotation to write a note" width="300"></a>
 </p>
 
 While killing the Murlocs, you discover a cave with an Elite. You're not ready for it just yet, so you open your map and `Alt-Click` your position to add a map annotation. These are not linked to a quest and have their own pin icon.
