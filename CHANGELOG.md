@@ -1,7 +1,8 @@
-## 1.6
+## 1.6.0
 
 - Added an icon selector to map annotations: The icons are ones that I thought would be useful. I might add more in the future depending on demand and my own use.
 - Fixed the hover order when multiple annotations overlapped.
+- Fixed journal quest width when Spoken is enabled
 
 ## 1.5.2
 

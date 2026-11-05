@@ -9,6 +9,12 @@ function STR.SetupSpokenShim()
             if indicator and indicator:IsShown() then
                 playButton:ClearAllPoints()
                 playButton:SetPoint("RIGHT", row.Checkbox, "LEFT", -2, 0)
+                if not GetCVarBool("questPOI") then
+                    local titleHeight = row.Text:GetHeight()
+                    row.Text:SetPoint("RIGHT", row.Checkbox, "LEFT", -playButton:GetWidth() - 6, 0)
+                    row:SetHeight(row:GetHeight() + row.Text:GetHeight() - titleHeight)
+                    QuestScrollFrame.Contents:MarkDirty()
+                end
             end
         end)
 
