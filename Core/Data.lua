@@ -1,7 +1,7 @@
 local _, STR = ...
 local Local = {}
 
-local version = 3
+local version = 4
 
 function STR.LoadData()
     SmellTheRosesDB = SmellTheRosesDB or { Version = version }
@@ -22,6 +22,7 @@ end
 function STR.AddAnnotation(annotation)
     annotation.x = RoundToSignificantDigits(annotation.x, 4)
     annotation.y = RoundToSignificantDigits(annotation.y, 4)
+    annotation.icon = annotation.icon or "default"
 
     if Local.HasAnnotation(annotation) then
         return "ERROR_DUPLICATE_ANNOTATION"
@@ -124,6 +125,20 @@ function Local.Migrate()
             end
         end
         STR.GlobalData.MapAnnotations = nil
+        STR.GlobalData.Version = 3
+    end
+
+    -- Version 4:
+    -- >>>> Annotations now store their selected icon.
+    if STR.Data.Version < 4 then
+        for _, annotation in ipairs(STR.Data.Annotations) do
+            annotation.icon = annotation.icon or "default"
+        end
+    end
+    if STR.GlobalData.Version < 4 then
+        for _, annotation in ipairs(STR.GlobalData.Annotations) do
+            annotation.icon = annotation.icon or "default"
+        end
     end
 
     STR.Data.Version = version

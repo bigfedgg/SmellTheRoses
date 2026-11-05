@@ -2,16 +2,11 @@
     <Frame name="STRNoteEditorTemplate"
            mixin="STRNoteEditorMixin"
            virtual="true">
-        <Size x="196" y="96"/>
+        <Size x="208" y="72"/>
         <Frames>
             <Frame parentKey="ScrollingEditBox"
-                   inherits="ScrollingEditBoxTemplate">
-                <Anchors>
-                    <Anchor point="TOPLEFT"/>
-                    <Anchor point="BOTTOMRIGHT" y="24"/>
-                </Anchors>
-            </Frame>
-
+                   inherits="ScrollingEditBoxTemplate"
+                   setAllPoints="true"/>
             <EventFrame parentKey="ScrollBar"
                         inherits="MinimalScrollBar">
                 <Anchors>
@@ -19,16 +14,6 @@
                     <Anchor point="BOTTOMRIGHT" relativeKey="$parent.ScrollingEditBox" relativePoint="BOTTOMRIGHT"/>
                 </Anchors>
             </EventFrame>
-
-            <!-- The toggle button is a POI button because I'm lazy and I want to reuse everything. -->
-            <Button parentKey="ToggleButton"
-                    inherits="POIButtonTemplate, STRAnnotationGlobalFillTemplate"
-                    mixin="STRNoteEditorToggleButtonMixin"
-                    hidden="false">
-                <Anchors>
-                    <Anchor point="BOTTOMRIGHT"/>
-                </Anchors>
-            </Button>
         </Frames>
         <Scripts>
             <OnLoad method="OnLoad"/>

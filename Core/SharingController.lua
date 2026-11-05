@@ -1,7 +1,7 @@
 local addonName, STR = ...
 local Local = {}
 
--- Native talent build followed by CSTR-questID:mapID:x:y:title:note:isTurnIn.
+-- Native talent build followed by CSTR-questID:mapID:x:y:title:note:isTurnIn:icon.
 local transportLinkPattern = "|Htalentbuild:[^|]-CSTR%-([^|]+)|h.-|h"
 local inputLinkPattern = "|cffffff00|Haddon:" .. addonName .. ":([^|]+)|h.-|h|r"
 
@@ -151,14 +151,14 @@ end
 
 function Local.EncodeAnnotation(annotation)
     local title, note = STR.Utils.EscapeText(annotation.title), STR.Utils.EscapeText(annotation.note)
-    return ("%s:%d:%04.0f:%04.0f:%s:%s:%d"):format(
+    return ("%s:%d:%04.0f:%04.0f:%s:%s:%d:%s"):format(
             annotation.questID or "", annotation.mapID,
             annotation.x * 10000, annotation.y * 10000,
-            title, note, annotation.isTurnIn and 1 or 0), #title + #note
+            title, note, annotation.isTurnIn and 1 or 0, annotation.icon), #title + #note
 end
 
 function Local.DecodeAnnotation(payload)
-    local questID, mapID, x, y, title, note, isTurnIn = strsplit(":", payload)
+    local questID, mapID, x, y, title, note, isTurnIn, icon = strsplit(":", payload)
     questID, mapID, x, y = tonumber(questID), tonumber(mapID), tonumber(x), tonumber(y)
 
     local mapInfo = mapID and C_Map.GetMapInfo(mapID)
@@ -182,7 +182,8 @@ function Local.DecodeAnnotation(payload)
         y = y / 10000,
         title = title,
         note = note ~= "" and Local.UnescapeText(note) or nil,
-        isTurnIn = isTurnIn == "1" or nil
+        isTurnIn = isTurnIn == "1" or nil,
+        icon = icon or "default",
     }
 end
 

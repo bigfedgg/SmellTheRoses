@@ -6,6 +6,8 @@ STR.L = {
     ["ERROR_INVALID_QUEST_MAP"] = "Quest annotations cannot be added to this map.",
 
     ["NOTE_TITLE"] = "Note:",
+    ["NOTE_TURN_IN_LOCATION"] = "Mark as a turn-in location",
+    ["NOTE_GLOBAL_ANNOTATION"] = "Mark as a global annotation",
 
     ["PIN_TOOLTIP_EDIT_HINT"] = "<Right Click to Edit>",
     ["PIN_TOOLTIP_REMOVE_HINT"] = "<Alt Click to Remove>",

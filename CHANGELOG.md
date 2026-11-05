@@ -1,3 +1,7 @@
+## 1.6
+
+- Added an icon selector to map annotations: The icons are ones that I thought would be useful. I might add more in the future depending on demand and my own use.
+
 ## 1.5.2
 
 - Quick fix to Spoken integration

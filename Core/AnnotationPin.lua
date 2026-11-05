@@ -103,12 +103,13 @@ function STRMapAnnotationPinMixin:OnLoad()
     STRAnnotationPinMixin.OnLoad(self)
     self:SetStyle(POIButtonUtil.Style.Waypoint)
     self:UpdateButtonStyle()
-    self.Display:SetAtlas(nil, nil, "worldquest-icon")
+    STR.Utils.ApplyMapAnnotationIcon(self, "default")
 end
 
 function STRMapAnnotationPinMixin:OnAcquired(annotation, x, y)
     STRAnnotationPinMixin.OnAcquired(self, annotation, x, y)
     self:UseFrameLevelType("PIN_FRAME_LEVEL_WAYPOINT_LOCATION")
+    STR.Utils.ApplyMapAnnotationIcon(self, annotation.icon)
     self.GlobalFill:SetShown(annotation.isGlobal)
 end
 

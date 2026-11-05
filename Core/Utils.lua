@@ -106,3 +106,24 @@ function Utils.EscapeText(text)
         return ("%%%02X"):format(character:byte())
     end)):gsub(":", "%%3A")
 end
+
+STR.MapAnnotationIcons = {
+    default = { atlas = "worldquest-icon" },
+    npc = { atlas = "squad_size_solo", size = 16, color = { 1, 0.82, 0 } },
+    skull = { atlas = "GM-raidMarker1", size = 14 },
+    chest = { atlas = "VignetteLoot", size = 14 },
+    resource = { atlas = "Professions_Tracking_Ore", size = 14 },
+    vendor = { atlas = "Banker", size = 14 },
+    magnifying = { atlas = "loreobject-32x32", size = 14 },
+    flag = { atlas = "friends-icon-recentAlly", size = 14 },
+}
+
+function Utils.ApplyMapAnnotationIcon(button, iconName)
+    local icon = STR.MapAnnotationIcons[iconName] or STR.MapAnnotationIcons.default
+    button.Display:SetAtlas(icon.size, icon.size, icon.atlas)
+    if icon.color then
+        button.Display.Icon:SetVertexColor(unpack(icon.color))
+    else
+        button.Display.Icon:SetVertexColor(1, 1, 1)
+    end
+end

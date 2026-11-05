@@ -1,18 +1,42 @@
 local _, STR = ...
 
 local openMenu
+local editorWidth = 232
+local iconSpacing = 28
+local iconStrip = { "default", "npc", "skull", "chest", "resource", "vendor", "magnifying", "flag" }
 
 -- NOTE: The editor is constructed as a menu, inspired by the native map menus.
 -- I like how those menus look and I didn't want to reinvent them, so here we are...
 function STR.OpenNoteEditor(pin)
     local editor
     local rootDescription = MenuUtil.CreateRootMenuDescription(MenuVariants.GetDefaultMenuMixin())
-    rootDescription:SetMinimumWidth(220)
+    rootDescription:SetMinimumWidth(editorWidth)
+    rootDescription:SetMaximumWidth(editorWidth)
     rootDescription:CreateTitle(STR.L["NOTE_TITLE"])
     rootDescription:CreateTemplate("STRNoteEditorTemplate"):AddInitializer(function(frame, _, menu)
         editor = frame
         frame:Initialize(pin.annotation, menu)
     end)
+
+    rootDescription:CreateSpacer(8)
+    local checkboxLabel = pin.annotation.questID and "NOTE_TURN_IN_LOCATION" or "NOTE_GLOBAL_ANNOTATION"
+    rootDescription:CreateCheckbox(STR.L[checkboxLabel], function()
+        if pin.annotation.questID then
+            return pin.annotation.isTurnIn
+        end
+        return pin.annotation.isGlobal
+    end, function()
+        editor:ToggleAnnotationType()
+    end)
+
+    if not pin.annotation.questID then
+        rootDescription:CreateSpacer(8)
+        rootDescription:CreateSpacer(28):AddInitializer(function(frame)
+            for index, button in ipairs(editor.iconButtons) do
+                button:SetPoint("CENTER", frame, "CENTER", (index - (#editor.iconButtons + 1) / 2) * iconSpacing, 0)
+            end
+        end)
+    end
 
     local anchor = AnchorUtil.CreateAnchor("TOP", pin, "BOTTOM", 0, -8)
     openMenu = Menu.GetManager():OpenMenu(pin, rootDescription, anchor)
@@ -48,24 +72,35 @@ function STRNoteEditorMixin:OnLoad()
         CreateAnchor("BOTTOMRIGHT", scrollingEditBox, "BOTTOMRIGHT"),
     }
     ScrollUtil.AddManagedScrollBarVisibilityBehavior(scrollBox, self.ScrollBar, anchorsWithBar, anchorsWithoutBar)
+
+    self.iconButtons = {}
+    for index, name in ipairs(iconStrip) do
+        local button = CreateFrame("Button", nil, self, "POIButtonTemplate, STRAnnotationGlobalFillTemplate")
+        button.icon = name
+        button:SetStyle(POIButtonUtil.Style.Waypoint)
+        button:UpdateButtonStyle()
+        STR.Utils.ApplyMapAnnotationIcon(button, name)
+        button.Glow:Hide()
+        button:SetScript("OnClick", function()
+            self:SelectIcon(name)
+        end)
+        button:SetScript("OnLeave", function()
+            POIButtonMixin.OnLeave(button)
+            button.HighlightTexture:SetShown(button.icon == self.annotation.icon)
+        end)
+        self.iconButtons[index] = button
+    end
 end
 
 function STRNoteEditorMixin:Initialize(annotation, menu)
     self.annotation = annotation
     self.menu = menu
 
-    -- Button to toggle the annotation type.
-    -- For maps: isGlobal; for quests: isTurnIn.
-    local toggleButton = self.ToggleButton
-    if annotation.questID then
-        toggleButton:SetStyle(STR.Utils.GetQuestAnnotationStyle(not annotation.isTurnIn))
-        toggleButton:UpdateButtonStyle()
-    else
-        toggleButton:SetStyle(POIButtonUtil.Style.Waypoint)
-        toggleButton:UpdateButtonStyle()
-        toggleButton.Display:SetAtlas(nil, nil, "worldquest-icon")
+    for _, button in ipairs(self.iconButtons) do
+        button:SetShown(not annotation.questID)
+        button.GlobalFill:SetShown(annotation.isGlobal)
+        button.HighlightTexture:SetShown(button.icon == annotation.icon)
     end
-    toggleButton.GlobalFill:SetShown(not annotation.questID and not annotation.isGlobal)
 
     -- Length is byte-based instead of character based because the limit
     -- comes from allowed hidden bytes when sharing a note. This is all
@@ -126,6 +161,15 @@ function STRNoteEditorMixin:ToggleAnnotationType()
     STR.UpdateQuestIndicators()
 end
 
+function STRNoteEditorMixin:SelectIcon(name)
+    self.annotation.icon = name
+    for _, button in ipairs(self.iconButtons) do
+        button.HighlightTexture:SetShown(button.icon == name)
+    end
+    STR.Utils.ApplyMapAnnotationIcon(self.menu:GetOwnerRegion(), name)
+    PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON)
+end
+
 function STRNoteEditorMixin:FocusAtEnd()
     self.ScrollingEditBox:SetFocus()
     self.ScrollingEditBox:SetCursorPosition(#self.ScrollingEditBox:GetText())
@@ -133,14 +177,4 @@ end
 
 function STRNoteEditorMixin:OnHide()
     self.ScrollingEditBox:ClearFocus()
-end
-
--- Used by: ToggleButton in STRNoteEditorTemplate.
-STRNoteEditorToggleButtonMixin = {}
-
-function STRNoteEditorToggleButtonMixin:OnClick()
-    self:GetParent():ToggleAnnotationType()
-end
-
-function STRNoteEditorToggleButtonMixin:OnSuperTrackingChanged()
 end
