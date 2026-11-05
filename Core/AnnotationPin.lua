@@ -62,7 +62,7 @@ end
 -- Used by: STRQuestAnnotationPinTemplate.
 STRQuestAnnotationPinMixin = {}
 
-function STRQuestAnnotationPinMixin:OnAcquired(annotation, x, y)
+function STRQuestAnnotationPinMixin:OnAcquired(annotation, x, y, frameLevelIndex)
     STRAnnotationPinMixin.OnAcquired(self, annotation, x, y)
 
     local questID = annotation.questID
@@ -70,7 +70,7 @@ function STRQuestAnnotationPinMixin:OnAcquired(annotation, x, y)
     if isSuperTracked then
         self:UseFrameLevelType("PIN_FRAME_LEVEL_SUPER_TRACKED_QUEST")
     else
-        self:UseFrameLevelType("PIN_FRAME_LEVEL_ACTIVE_QUEST")
+        self:UseFrameLevelType("PIN_FRAME_LEVEL_ACTIVE_QUEST", frameLevelIndex)
     end
 
     self:SetQuestID(questID)

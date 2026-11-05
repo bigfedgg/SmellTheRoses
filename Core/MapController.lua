@@ -93,7 +93,7 @@ function STRMapController:RefreshAllData()
         local x, y = Local.GetAnnotationPositionOnMap(annotation, mapID, focusedQuestID)
         if x then
             local template = annotation.questID and questPinTemplate or mapPinTemplate
-            table.insert(pins, map:AcquirePin(template, annotation, x, y))
+            table.insert(pins, map:AcquirePin(template, annotation, x, y, #pins + 1))
         end
     end
 
