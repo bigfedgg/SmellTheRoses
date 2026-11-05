@@ -1,3 +1,7 @@
+## 1.6.1
+
+- Fixed journal quest height when Spoken is enabled (for real this time!)
+
 ## 1.6.0
 
 - Added an icon selector to map annotations: The icons are ones that I thought would be useful. I might add more in the future depending on demand and my own use.

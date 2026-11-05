@@ -10,9 +10,15 @@ function STR.SetupSpokenShim()
                 playButton:ClearAllPoints()
                 playButton:SetPoint("RIGHT", row.Checkbox, "LEFT", -2, 0)
                 if not GetCVarBool("questPOI") then
-                    local titleHeight = row.Text:GetHeight()
-                    row.Text:SetPoint("RIGHT", row.Checkbox, "LEFT", -playButton:GetWidth() - 6, 0)
-                    row:SetHeight(row:GetHeight() + row.Text:GetHeight() - titleHeight)
+                    row.Text:SetPoint("RIGHT", row.Checkbox, "LEFT", -27, 0)
+                    local bottom = row.Text:GetBottom()
+                    for objective in QuestScrollFrame.objectiveFramePool:EnumerateActive() do
+                        if objective.questID == row.questID then
+                            bottom = math.min(bottom, objective:GetBottom())
+                        end
+                    end
+                    local padding = GetCVarBool("showQuestObjectivesInLog") and 6 or 10
+                    row:SetHeight(row:GetTop() - bottom + padding)
                     QuestScrollFrame.Contents:MarkDirty()
                 end
             end
